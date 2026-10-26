@@ -15,6 +15,10 @@ O projeto Supabase `sltohhqejguauhanjhfj` já tem a migração `supabase/migrati
 
 O carrinho guarda a seleção no navegador. Antes de criar qualquer cobrança, o servidor deverá consultar novamente preço e estoque no Supabase; os valores guardados pelo navegador não são confiáveis para pagamento.
 
+O endpoint `/api/checkout/quote` já recalcula preço e estoque no servidor, mas não cria pedido ou cobrança. Para segurança, veja `docs/seguranca/auditoria.md`, `docs/seguranca/checklist.md` e `docs/seguranca/incidentes.md`. Execute `npm test`, `npm run lint`, `npm run build` e `npm audit` antes de publicar alterações.
+
+Os textos em `lib/legal.ts` são rascunhos jurídicos. As rotas `/legal/*` ficam bloqueadas até `LEGAL_PAGES_REVIEWED=true`, que só deve ser definido depois de revisão profissional e preenchimento dos campos entre colchetes. Veja `docs/legal/LEIA-ME.md`.
+
 ## Cadastro pelo site
 
 Depois de criar o projeto Supabase, ative autenticação por e-mail e crie sua conta de administrador no painel Supabase Auth. No SQL Editor, execute `insert into public.admin_users (user_id) values ('UUID_DA_CONTA');`, substituindo pelo ID da conta criada. Acesse `/admin` e entre com e-mail e senha. Cadastre nome, identificador, descrição, categoria, material, preço, estoque e foto principal. O painel grava a foto no bucket `product-images`. A loja mostra apenas produtos marcados como publicados. O cadastro de múltiplas fotos e variações ainda precisa ser concluído.
