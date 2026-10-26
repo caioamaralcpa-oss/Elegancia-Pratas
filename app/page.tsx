@@ -2,6 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { brl, products } from '@/lib/products';
 
+// Produtos publicados no painel devem aparecer sem exigir um novo deploy.
+export const dynamic = 'force-dynamic';
+
 const categories = [
   { name: 'Colares', image: '/images/category-colares.png', href: '/catalogo?categoria=Colares' },
   { name: 'Anéis', image: '/images/category-aneis.png', href: '/catalogo?categoria=Anéis' },
