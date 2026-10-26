@@ -1,0 +1,15 @@
+create extension if not exists pgcrypto;
+create table public.products (id uuid primary key default gen_random_uuid(), slug text not null unique, name text not null, description text, category text not null, material text, price_cents integer not null check (price_cents >= 0), image_url text, stock integer not null default 0 check (stock >= 0), weight_grams integer check (weight_grams > 0), width_cm numeric(7,2) check (width_cm > 0), height_cm numeric(7,2) check (height_cm > 0), length_cm numeric(7,2) check (length_cm > 0), active boolean not null default false, created_at timestamptz not null default now());
+create table public.product_variants (id uuid primary key default gen_random_uuid(), product_id uuid not null references public.products(id) on delete cascade, sku text not null unique, name text not null, stock integer not null default 0 check (stock >= 0), price_cents integer check (price_cents >= 0));
+create table public.orders (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id), email text not null, status text not null default 'aguardando_pagamento' check (status in ('aguardando_pagamento','pago','em_preparacao','enviado','entregue','cancelado')), subtotal_cents integer not null check (subtotal_cents >= 0), shipping_cents integer not null check (shipping_cents >= 0), total_cents integer not null check (total_cents >= 0), shipping_address jsonb not null, tracking_code text, payment_provider_id text unique, created_at timestamptz not null default now());
+create table public.order_items (id uuid primary key default gen_random_uuid(), order_id uuid not null references public.orders(id) on delete cascade, product_id uuid references public.products(id), variant_id uuid references public.product_variants(id), product_name text not null, quantity integer not null check (quantity > 0), unit_price_cents integer not null check (unit_price_cents >= 0));
+create table public.admin_users (user_id uuid primary key references auth.users(id) on delete cascade);
+alter table public.products enable row level security;
+alter table public.product_variants enable row level security;
+alter table public.orders enable row level security;
+alter table public.order_items enable row level security;
+alter table public.admin_users enable row level security;
+create policy "public read active products" on public.products for select using (active);
+create policy "public read active variants" on public.product_variants for select using (exists (select 1 from public.products p where p.id = product_id and p.active));
+create policy "customer read own orders" on public.orders for select to authenticated using (user_id = auth.uid());
+create policy "customer read own items" on public.order_items for select to authenticated using (exists (select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
