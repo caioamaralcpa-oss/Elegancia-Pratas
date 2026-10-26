@@ -24,7 +24,7 @@ Atualizado em 26/10/2026. **Feito** significa validado no escopo indicado; não 
 | Páginas legais revisadas | Depende de terceiros | Rascunhos bloqueados por padrão; advogado deve revisar e dados da empresa devem ser preenchidos. |
 | Registro de aceite dos termos | Pendente | Implementar no futuro checkout/cadastro. |
 | Direito de arrependimento pelo site | Pendente | Implementar fluxo e atendimento antes de vender. |
-| Backup e restauração testada | Depende de terceiros | Confirmar plano e configuração do Supabase; executar ensaio de restauração. |
+| Backup e restauração testada | Depende de terceiros | Procedimento em `docs/seguranca/backups.md`; confirmar plano e executar ensaio de restauração. |
 | Gitleaks, CodeQL, Dependabot | Parcial | Arquivos de configuração presentes; verificar execução e permissões no GitHub. |
 | Proteção de `main` e revisão obrigatória | Depende de terceiros | Configurar nas opções do repositório GitHub. |
 | Monitoramento sem dados pessoais | Pendente | Definir ferramenta e política de logs. |
