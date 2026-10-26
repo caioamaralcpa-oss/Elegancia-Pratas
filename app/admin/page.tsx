@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Product } from '@/lib/products';
 
@@ -21,24 +21,14 @@ export default function Admin() {
   const [qrCode, setQrCode] = useState('');
   const [code, setCode] = useState('');
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     if (!db) return;
     const { data, error } = await db.from('products').select('id,slug,name,description,price_cents,category,material,image_url,stock').order('created_at', { ascending: false });
     if (error) setMessage(error.message);
     else setItems(data ?? []);
-  }
-
-  useEffect(() => {
-    async function check() {
-      if (!db) { setLoading(false); return; }
-      const { data: { user } } = await db.auth.getUser();
-      if (user) await continueAfterSignIn();
-      setLoading(false);
-    }
-    void check();
   }, []);
 
-  async function continueAfterSignIn() {
+  const continueAfterSignIn = useCallback(async () => {
     if (!db) return;
     const { data: assurance } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assurance?.currentLevel !== 'aal2') {
@@ -57,7 +47,17 @@ export default function Admin() {
     const { data: role } = await db.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
     if (!role) { await db.auth.signOut(); setNeedsMfa(false); setMessage('Esta conta não tem acesso administrativo.'); return; }
     setNeedsMfa(false); setAuthorized(true); setMessage(''); await refresh();
-  }
+  }, [refresh]);
+
+  useEffect(() => {
+    async function check() {
+      if (!db) { setLoading(false); return; }
+      const { data: { user } } = await db.auth.getUser();
+      if (user) await continueAfterSignIn();
+      setLoading(false);
+    }
+    void check();
+  }, [continueAfterSignIn]);
 
   async function verifyMfa(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
