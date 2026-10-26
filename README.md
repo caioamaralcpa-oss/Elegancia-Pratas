@@ -21,7 +21,7 @@ Os textos em `lib/legal.ts` são rascunhos jurídicos. As rotas `/legal/*` ficam
 
 ## Cadastro pelo site
 
-Depois de criar o projeto Supabase, ative autenticação por e-mail e crie sua conta de administrador no painel Supabase Auth. No SQL Editor, execute `insert into public.admin_users (user_id) values ('UUID_DA_CONTA');`, substituindo pelo ID da conta criada. Acesse `/admin` e entre com e-mail e senha. Cadastre nome, identificador, descrição, categoria, material, preço, estoque e foto principal. O painel grava a foto no bucket `product-images`. A loja mostra apenas produtos marcados como publicados. O cadastro de múltiplas fotos e variações ainda precisa ser concluído.
+Depois de criar o projeto Supabase, ative autenticação por e-mail e crie sua conta de administrador no painel Supabase Auth. No SQL Editor, execute `insert into public.admin_users (user_id) values ('UUID_DA_CONTA');`, substituindo pelo ID da conta criada. Acesse `/admin`, entre com e-mail e senha e configure o segundo fator TOTP. Cadastre nome, identificador, descrição, categoria, material, preço, estoque e foto principal. A foto é validada e recodificada no servidor antes de ser gravada no bucket `product-images`. A loja mostra apenas produtos marcados como publicados. O cadastro de múltiplas fotos e variações ainda precisa ser concluído.
 
 ## Próximas integrações
 

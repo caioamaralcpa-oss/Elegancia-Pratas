@@ -84,12 +84,13 @@ export default function Admin() {
     const image = form.get('imagem') as File;
     let imageUrl = editing ? items.find(p => p.id === editing)?.image_url ?? null : null;
     if (image?.size) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type) || image.size > 5 * 1024 * 1024) { setMessage('Envie JPG, PNG ou WebP de até 5 MB.'); return; }
-      const extension = image.type === 'image/jpeg' ? 'jpg' : image.type === 'image/png' ? 'png' : 'webp';
-      const path = `${crypto.randomUUID()}.${extension}`;
-      const { error } = await db.storage.from('product-images').upload(path, image, { contentType: image.type, upsert: false });
-      if (error) { setMessage(`Erro ao enviar imagem: ${error.message}`); return; }
-      imageUrl = db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+      const { data: { session } } = await db.auth.getSession();
+      if (!session) { setMessage('Sua sessão expirou. Entre novamente.'); return; }
+      const upload = new FormData();
+      upload.set('imagem', image);
+      const response = await fetch('/api/admin/images', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body: upload });
+      if (!response.ok) { setMessage('Não foi possível enviar a imagem. Verifique o formato e tente novamente.'); return; }
+      imageUrl = (await response.json()).imageUrl;
     }
     const price = Number(form.get('preco'));
     const stock = Number(form.get('estoque'));

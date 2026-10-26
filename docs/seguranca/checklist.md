@@ -14,7 +14,7 @@ Atualizado em 26/10/2026. **Feito** significa validado no escopo indicado; não 
 | Cabeçalhos de segurança | Parcial | Configurados em `next.config.ts`; confirmar resposta da Vercel e endurecer CSP sem `unsafe-inline`. |
 | Preço calculado no servidor | Parcial | `/api/checkout/quote` consulta catálogo; testes unitários passaram. Checkout/pagamento ainda não existem. |
 | Validação de entradas com Zod | Parcial | Aplicada à cotação do carrinho; ampliar para novas rotas. |
-| Upload de imagem seguro | Pendente | MIME/tamanho declarados e nome aleatório; falta validação dos bytes e recodificação no servidor. |
+| Upload de imagem seguro | Parcial | Rota autentica admin com MFA via RLS, decodifica formatos reais com Sharp 0.35.5, recodifica para WebP, limita tamanho e pixels e renomeia. Faltam teste com conta real, limpeza de arquivos órfãos e limite de requisições. |
 | Assinatura/idempotência de webhooks | Pendente | Integração Mercado Pago não implementada. |
 | Frete e proteção contra manipulação | Pendente | Integração Melhor Envio não implementada. |
 | Limites de requisição e CAPTCHA | Pendente | Definir solução distribuída antes de ativar rotas sensíveis. |
