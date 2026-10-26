@@ -9,7 +9,7 @@ Atualizado em 26/10/2026. **Feito** significa validado no escopo indicado; não 
 | RLS em todas as tabelas da loja | Feito | Seis tabelas com RLS, incluindo trilha de auditoria. |
 | Isolamento entre pedidos de clientes e MFA no banco | Feito | `tests/rls.sql` executado no Supabase em transação revertida; zero registros de teste remanescentes. |
 | MFA TOTP para admin | Feito no código/banco; teste humano pendente | Painel permite configurar/verificar TOTP; políticas exigem AAL2. Testar com conta real antes de operação. |
-| Papéis atendente e administrador | Parcial | RLS distingue leitura e gestão; interface e fluxo de concessão de papéis ainda limitados. |
+| Papéis atendente e administrador | Parcial | RLS distingue leitura e gestão; atendente só altera status/rastreio e não confirma pagamento. Interface e fluxo de concessão de papéis ainda limitados. |
 | Registro de alterações em produtos/pedidos | Parcial | Gatilhos registram ator, operação, tabela e horário; falta interface de consulta e política de retenção. |
 | Cabeçalhos de segurança | Parcial | Configurados em `next.config.ts`; confirmar resposta da Vercel e endurecer CSP sem `unsafe-inline`. |
 | Preço calculado no servidor | Parcial | `/api/checkout/quote` consulta catálogo; testes unitários passaram. Checkout/pagamento ainda não existem. |

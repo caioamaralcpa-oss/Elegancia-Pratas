@@ -26,6 +26,12 @@ select set_config('request.jwt.claims', '{"sub":"11111111-1111-4111-8111-1111111
 do $$
 begin
   if not public.has_staff_role(array['administrador']) then raise exception 'admin com MFA recusado'; end if;
+  begin
+    update public.orders set status = 'pago' where user_id = '11111111-1111-4111-8111-111111111111';
+    raise exception 'admin marcou pedido como pago sem webhook';
+  exception when others then
+    if sqlerrm <> 'A confirmação de pagamento exige o serviço de pagamentos' then raise; end if;
+  end;
 end;
 $$;
 
