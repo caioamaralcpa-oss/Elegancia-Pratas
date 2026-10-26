@@ -13,3 +13,13 @@ create policy "public read active products" on public.products for select using 
 create policy "public read active variants" on public.product_variants for select using (exists (select 1 from public.products p where p.id = product_id and p.active));
 create policy "customer read own orders" on public.orders for select to authenticated using (user_id = auth.uid());
 create policy "customer read own items" on public.order_items for select to authenticated using (exists (select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
+create policy "admin read role" on public.admin_users for select to authenticated using (user_id = auth.uid());
+create policy "admin manage products" on public.products for all to authenticated using (exists (select 1 from public.admin_users a where a.user_id = auth.uid())) with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+create policy "admin manage variants" on public.product_variants for all to authenticated using (exists (select 1 from public.admin_users a where a.user_id = auth.uid())) with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+create policy "admin manage orders" on public.orders for all to authenticated using (exists (select 1 from public.admin_users a where a.user_id = auth.uid())) with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+create policy "admin manage order items" on public.order_items for all to authenticated using (exists (select 1 from public.admin_users a where a.user_id = auth.uid())) with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types) values ('product-images','product-images',true,5242880,array['image/jpeg','image/png','image/webp']) on conflict (id) do nothing;
+create policy "read product images" on storage.objects for select using (bucket_id = 'product-images');
+create policy "admin upload product images" on storage.objects for insert to authenticated with check (bucket_id = 'product-images' and exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+create policy "admin update product images" on storage.objects for update to authenticated using (bucket_id = 'product-images' and exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+create policy "admin delete product images" on storage.objects for delete to authenticated using (bucket_id = 'product-images' and exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
