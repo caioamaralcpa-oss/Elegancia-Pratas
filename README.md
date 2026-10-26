@@ -2,6 +2,8 @@
 
 Loja online em desenvolvimento com Next.js, TypeScript, Tailwind e Supabase. O código fica no GitHub; catálogo, pedidos, imagens e pagamentos de produção serão conectados a serviços gerenciados na nuvem.
 
+A home segue a direção visual **Editorial Vinho**: fotografia de campanha, fundo vinho profundo, tipografia serifada e categorias visuais. As quatro imagens em `public/images` são material de ambientação gerado para o layout; não representam produtos cadastrados nem substituem fotos reais de cada joia. A marca no cabeçalho ainda é uma composição tipográfica, aguardando o arquivo final da logo.
+
 ## Executar
 
 ```sh
