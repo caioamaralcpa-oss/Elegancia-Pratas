@@ -8,6 +8,7 @@ import './management.css';
 import './queue.css';
 import './jewelry-table.css';
 import './inventory.css';
+import './pricing-workflow.css';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
