@@ -8,6 +8,7 @@ Atualizado em 26/10/2026. **Feito** significa validado no escopo indicado; não 
 | Dependências sem aviso conhecido no `npm audit` | Feito | Lockfile atualizado; `npm audit --audit-level=moderate` retornou zero na data acima. Repetir continuamente. |
 | RLS em todas as tabelas da loja | Feito | Tabelas da loja com RLS, incluindo trilha de auditoria e custos privados de precificação. |
 | Custos e margem de precificação | Parcial | `product_pricing` exige administrador com MFA; `anon` não pode ler a tabela nem executar a função de aplicar preço. Teste com conta real ainda pendente. |
+| Cadastro privado de joias | Parcial | `jewelry_intake` guarda custo unitário e caminho da foto em bucket privado; RLS exige administrador com MFA. Teste de ponta a ponta com conta real ainda pendente. |
 | Isolamento entre pedidos de clientes e MFA no banco | Feito | `tests/rls.sql` executado no Supabase em transação revertida; zero registros de teste remanescentes. |
 | MFA TOTP para admin | Feito no código/banco; teste humano pendente | Painel permite configurar/verificar TOTP; políticas exigem AAL2. Testar com conta real antes de operação. |
 | Papéis atendente e administrador | Parcial | RLS distingue leitura e gestão; atendente só altera status/rastreio e não confirma pagamento. Interface e fluxo de concessão de papéis ainda limitados. |

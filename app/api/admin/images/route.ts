@@ -14,6 +14,8 @@ export async function POST(request: Request) {
   if (userError || !userData.user) return Response.json({ error: 'Acesso negado.' }, { status: 401 });
   const { data: admin } = await db.from('admin_users').select('role').eq('user_id', userData.user.id).eq('role', 'administrador').maybeSingle();
   if (!admin) return Response.json({ error: 'Acesso negado.' }, { status: 403 });
+  const kind = new URL(request.url).searchParams.get('kind');
+  if (kind !== null && kind !== 'identification') return Response.json({ error: 'Tipo de imagem inválido.' }, { status: 400 });
   let image: FormDataEntryValue | null;
   try { image = (await request.formData()).get('imagem'); }
   catch { return Response.json({ error: 'Arquivo inválido.' }, { status: 400 }); }
@@ -26,9 +28,11 @@ export async function POST(request: Request) {
     const optimized = await processor.rotate().resize(1800, 1800, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
     if (optimized.length > 5 * 1024 * 1024) throw new Error('Arquivo otimizado muito grande');
     const path = `${crypto.randomUUID()}.webp`;
-    const { error } = await db.storage.from('product-images').upload(path, optimized, { contentType: 'image/webp', upsert: false });
+    const bucket = kind === 'identification' ? 'jewelry-identification' : 'product-images';
+    const { error } = await db.storage.from(bucket).upload(path, optimized, { contentType: 'image/webp', upsert: false });
     if (error) return Response.json({ error: 'Não foi possível enviar a imagem.' }, { status: 503 });
-    const imageUrl = db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+    if (kind === 'identification') return Response.json({ imagePath: path }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    const imageUrl = db.storage.from(bucket).getPublicUrl(path).data.publicUrl;
     return Response.json({ imageUrl }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch { return Response.json({ error: 'Imagem inválida. Use JPG, PNG ou WebP.' }, { status: 400 }); }
 }
