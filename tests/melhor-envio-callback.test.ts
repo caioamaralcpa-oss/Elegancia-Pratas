@@ -12,5 +12,7 @@ test('URL de cadastro responde sem ativar OAuth', async () => {
 test('código de autorização não é aceito nem exibido', async () => {
   const response = await GET(new Request('https://eleganciapratas.vercel.app/api/integrations/melhor-envio/callback?code=segredo&state=teste'));
   assert.equal(response.status, 503);
-  assert.doesNotMatch(await response.text(), /segredo|teste/);
+  const body = await response.text();
+  assert.match(body, /Etapa: ESTADO/);
+  assert.doesNotMatch(body, /segredo|teste/);
 });
