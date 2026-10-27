@@ -1,0 +1,11 @@
+.jewelry-followup{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.pricing-queue-summary{display:flex;gap:15px;flex-wrap:wrap;margin:15px 0 25px}
+.pricing-queue-summary>div{display:grid;gap:4px;min-width:160px;padding:18px 22px;border:1px solid #e6d8d5;background:#fff}
+.pricing-queue-summary strong{font:normal 2rem Georgia,serif;color:#50000d}
+.pricing-queue-summary span,.pricing-queue-list small,.pricing-queue-list article>div:nth-child(2)>span{color:#806d70;font-size:.75rem}
+.pricing-queue{margin:22px 0}.pricing-queue-list{display:grid}
+.pricing-queue-list article{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 0;border-top:1px solid #e8dedb}
+.pricing-queue-list article>div{display:grid;gap:6px}.pricing-queue-list article>div:first-child{min-width:200px;flex:1}
+.pricing-queue-list article>div:nth-child(2){min-width:125px}.pricing-queue-list article>div:nth-child(2)>strong{color:#50000d}
+.pricing-queue-note{max-width:760px;color:#806d70;font-size:.86rem;line-height:1.55}
+@media(max-width:750px){.pricing-queue-list article{align-items:start;flex-direction:column}.jewelry-followup .management-outline{white-space:normal}}
