@@ -13,10 +13,11 @@ export async function GET(request: Request) {
   let connected = false;
   if (configured) {
     const db = serviceDb();
-    const { data, error } = await db!.from('melhor_envio_oauth').select('environment,expires_at').eq('environment', 'sandbox').maybeSingle();
-    if (error) return Response.json({ error: error.code === 'PGRST301' || error.code === 'PGRST302' || error.code === '42501'
-      ? 'A chave de servidor do Supabase na Vercel foi recusada ou não tem acesso. Confira se é a chave service_role do projeto correto.'
-      : 'Não foi possível consultar o Supabase. Verifique a chave de servidor e tente novamente.' }, { status: 503, headers: noStore });
+    const { data, error, status } = await db!.from('melhor_envio_oauth').select('environment,expires_at').eq('environment', 'sandbox').maybeSingle();
+    if (error) {
+      const safeCode = /^[A-Z0-9]{1,16}$/.test(error.code ?? '') ? error.code : 'INDEFINIDO';
+      return Response.json({ error: `Consulta ao Supabase falhou (HTTP ${status}; código ${safeCode}). Nenhuma credencial foi exibida.` }, { status: 503, headers: noStore });
+    }
     connected = Boolean(data && Date.parse(data.expires_at) > Date.now());
   }
   return Response.json({ configured, connected, environment: 'sandbox' }, { headers: noStore });
