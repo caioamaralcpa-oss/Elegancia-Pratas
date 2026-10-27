@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useManagement } from '../layout';
 
@@ -43,6 +44,6 @@ export default function IntegrationsPage() {
 
   return <main className="management-page"><p className="eyebrow">SERVIÇOS DA LOJA</p><h1>Integrações</h1><p className="management-intro">Conecte os serviços externos sem colocar senhas ou chaves no navegador. O Melhor Envio está configurado inicialmente apenas para o Sandbox.</p>
     <section className="management-card management-pending"><h2>Melhor Envio · Sandbox</h2>{!status ? <p>Verificando configuração...</p> : <><p><strong>Credenciais na Vercel:</strong> {status.configured ? 'configuradas' : 'pendentes'}</p><p><strong>Autorização:</strong> {status.connected ? 'conectada no Sandbox' : 'não conectada'}</p><p>Escopo solicitado: somente cotação de frete (<code>shipping-calculate</code>). Nenhum frete real ou etiqueta será comprado nesta etapa.</p>{!status.configured ? <p>Adicione as variáveis privadas <code>MELHOR_ENVIO_CLIENT_ID</code>, <code>MELHOR_ENVIO_CLIENT_SECRET</code> e <code>SUPABASE_SERVICE_ROLE_KEY</code> nas configurações de ambiente da Vercel para Produção. Depois, faça uma nova implantação. Não compartilhe os valores no chat.</p> : <button className="botao" type="button" disabled={busy} onClick={() => void connect()}>{busy ? 'Aguarde...' : status.connected ? 'Renovar autorização no Sandbox' : 'Autorizar no Sandbox'}</button>}</>}
-    </section><p role="status" className="management-status">{message}</p>{message && !status && <button type="button" className="management-outline" onClick={() => void refresh()}>Tentar novamente</button>}<p className="pricing-queue-note">Mesmo após autorizar, o carrinho continuará sem checkout até a cotação de frete, pagamento e testes completos estarem conectados.</p>
+    </section>{status?.connected && <Link className="management-outline" href="/admin/integracoes/frete">Testar cotação de frete →</Link>}<p role="status" className="management-status">{message}</p>{message && !status && <button type="button" className="management-outline" onClick={() => void refresh()}>Tentar novamente</button>}<p className="pricing-queue-note">Mesmo após autorizar, o carrinho continuará sem checkout até a cotação de frete, pagamento e testes completos estarem conectados.</p>
   </main>;
 }
