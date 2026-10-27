@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type FormE
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import './management.css';
 import './queue.css';
+import './jewelry-table.css';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

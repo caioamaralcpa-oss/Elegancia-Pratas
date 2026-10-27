@@ -1,0 +1,13 @@
+.jewelry-table-card{padding:0;overflow:hidden}
+.jewelry-table-head{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:24px 27px}
+.jewelry-table-head h2{margin-bottom:5px}.jewelry-table-head h2 small{font:normal .8rem Arial,sans-serif;background:#f3e8e7;border-radius:20px;padding:5px 9px;vertical-align:middle}
+.jewelry-table-head p{margin:0;font-size:.83rem}.jewelry-table-head label{min-width:245px}.jewelry-table-scroll{overflow-x:auto}
+.jewelry-table{width:100%;min-width:1060px;border-collapse:collapse;text-align:left;font-size:.82rem}
+.jewelry-table th{background:#f4edeb;color:#6e5359;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;padding:14px 17px}
+.jewelry-table td{padding:17px;border-top:1px solid #eee3e0;vertical-align:middle;color:#49393d}
+.jewelry-table td:first-child{min-width:190px}.jewelry-table td:first-child strong,.jewelry-table td:first-child small{display:block}.jewelry-table td:first-child strong{font-size:.88rem}.jewelry-table td:first-child small{color:#806d70;margin-top:5px}
+.jewelry-table td:nth-child(4),.jewelry-table td:nth-child(5),.jewelry-table td:nth-child(6),.jewelry-table td:nth-child(7){white-space:nowrap}
+.jewelry-table button{border:1px solid #8b4e59;color:#50000d;background:#fff;padding:8px 11px;cursor:pointer}.jewelry-table button:hover{background:#50000d;color:#fff}
+.jewelry-table .management-badge{white-space:nowrap}.jewelry-pending{color:#9c5b34;font-weight:600}
+.jewelry-editor{max-width:850px;margin-top:26px;scroll-margin-top:25px}
+@media(max-width:750px){.jewelry-table-head{padding:20px;display:grid}.jewelry-table-head label{min-width:0}}
