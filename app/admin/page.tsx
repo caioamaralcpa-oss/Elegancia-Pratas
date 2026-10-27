@@ -8,7 +8,8 @@ const steps = [
   { href: '/admin/joias', number: '01', title: 'Joias', description: 'Cadastre a peça, o custo unitário, a quantidade e a foto de identificação.', available: true },
   { href: '/admin/estoque', number: '02', title: 'Estoque', description: 'Embalagens, modelos de venda local ou envio e insumos da operação.', available: true },
   { href: '/admin/precificacao', number: '03', title: 'Precificação', description: 'Calcule custos, preço final e margem de cada joia.', available: true },
-  { href: '/admin/catalogo', number: '04', title: 'Catálogo', description: 'Revise os dados comerciais e publique somente peças completas.', available: false },
+  { href: '/admin/catalogo', number: '04', title: 'Catálogo', description: 'Revise os dados comerciais e publique somente peças completas.', available: true },
+  { href: '/admin/integracoes', number: '05', title: 'Integrações', description: 'Conecte o Melhor Envio no ambiente de testes.', available: true },
 ];
 
 export default function ManagementHome() {

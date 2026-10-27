@@ -28,6 +28,7 @@ const sections = [
   { href: '/admin/estoque', label: 'Estoque' },
   { href: '/admin/precificacao', label: 'Precificação' },
   { href: '/admin/catalogo', label: 'Catálogo' },
+  { href: '/admin/integracoes', label: 'Integrações' },
 ];
 
 export default function ManagementLayout({ children }: { children: ReactNode }) {
