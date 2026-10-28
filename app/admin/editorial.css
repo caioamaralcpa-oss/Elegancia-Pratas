@@ -34,3 +34,21 @@
 @media(max-width:1080px){.workflow-result{grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-result>div:nth-child(3){border-left:0;border-top:1px solid #eadfdb}.workflow-result>div:nth-child(4){border-top:1px solid #eadfdb}}
 @media(max-width:750px){.management-layout{grid-template-columns:1fr}.management-sidebar{width:100%;height:66px;background:#fffdfa;border-bottom:1px solid var(--admin-line);border-right:0}.management-sidebar nav a[aria-current=page]{box-shadow:inset 0 -3px #7a1930}}
 @media(max-width:560px){.workflow-result{grid-template-columns:1fr}.workflow-result>div{min-height:80px;padding:15px 18px;border-left:0;border-top:1px solid #eadfdb}.workflow-result>div:first-child{border-top:0}.workflow-result>div:nth-child(3){border-top:1px solid #eadfdb}}
+
+/* Jewelry registration and list share one alignment grid. */
+.jewelry-page .management-title-row{align-items:center;margin:0 0 28px}
+.jewelry-page .management-title-row>div{min-width:0}
+.jewelry-page .management-title-row h1{margin-bottom:8px}
+.jewelry-page .management-title-row .management-intro{margin:0}
+.jewelry-page .management-title-row>.management-outline{flex:none;align-self:center}
+.jewelry-page .jewelry-editor,.jewelry-page .jewelry-table-card{width:100%;max-width:none;margin:0}
+.jewelry-page .jewelry-editor{margin-bottom:26px;scroll-margin-top:96px}
+.jewelry-page .jewelry-form-head{align-items:center;margin-bottom:24px}
+.jewelry-page .jewelry-form-head .eyebrow{margin:0 0 4px}
+.jewelry-page .jewelry-form-head h2{margin:0}
+.jewelry-page .management-fields{gap:20px 24px}
+.jewelry-page .jewelry-table-head{align-items:center}
+.jewelry-page .jewelry-table-head h2{margin:0 0 7px}
+.jewelry-page .jewelry-table-head label{width:min(280px,100%)}
+.jewelry-page .jewelry-table td,.jewelry-page .jewelry-table th{padding-left:16px;padding-right:16px}
+@media(max-width:750px){.jewelry-page .management-title-row{align-items:start}.jewelry-page .management-title-row>.management-outline{align-self:start}.jewelry-page .jewelry-editor{scroll-margin-top:82px}.jewelry-page .jewelry-table-head{align-items:stretch}.jewelry-page .jewelry-table-head label{width:100%}}
