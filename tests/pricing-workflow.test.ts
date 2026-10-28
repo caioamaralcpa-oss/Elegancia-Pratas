@@ -29,3 +29,10 @@ test('exemplo real: custo-base de R$ 76,24 e margem de 52%', () => {
   assert.equal(result.fixedCostCents, 7624);
   assert.equal(result.priceCents, 15884);
 });
+
+test('acréscimo de 150% resulta em lucro de 60% sobre cada venda', () => {
+  const result = calculateWorkflowQuote({ ...base, markupBps: 15000 });
+  assert.equal(result.priceCents, 3250);
+  assert.equal(result.profitCents, 1950);
+  assert.equal(result.estimatedMarginBps, 6000);
+});

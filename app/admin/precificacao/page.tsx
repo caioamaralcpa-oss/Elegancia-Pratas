@@ -11,9 +11,9 @@ type Jewelry = { id: string; registration_code: string; name: string; model: str
 type StockItem = { id: string; kind: 'embalagem' | 'insumo'; unit_cost_cents: number; quantity_on_hand: number; acquired_quantity: number; acquired_on: string | null };
 type PackagingModel = { id: string; name: string; channel: 'local' | 'envio'; packaging_model_components: ModelComponent[] };
 type SavedPricing = { product_id: string; packaging_model_id: string | null; monthly_sales_estimate: number; target_margin_bps: number; pricing_mode: 'margem' | 'preco'; approved_price_cents: number };
-type Draft = { modelId: string; monthlySales: string; targetMargin: string; manualPrice: string; mode: 'margem' | 'preco' };
+type Draft = { modelId: string; monthlySales: string; targetMargin: string; manualPrice: string; markup: string; mode: 'margem' | 'preco' | 'acrescimo' };
 
-const emptyDraft: Draft = { modelId: '', monthlySales: '', targetMargin: '', manualPrice: '', mode: 'margem' };
+const emptyDraft: Draft = { modelId: '', monthlySales: '', targetMargin: '', manualPrice: '', markup: '', mode: 'margem' };
 const displayMoney = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
 const displayPercent = (bps: number) => (bps / 100).toFixed(2).replace('.', ',');
 
@@ -67,7 +67,7 @@ export default function PricingPage() {
     const previous = saved.find(record => record.product_id === item.id);
     setDraft(previous ? {
       modelId: previous.packaging_model_id ?? '', monthlySales: String(previous.monthly_sales_estimate),
-      targetMargin: displayPercent(previous.target_margin_bps), manualPrice: displayMoney(previous.approved_price_cents),
+      targetMargin: displayPercent(previous.target_margin_bps), manualPrice: displayMoney(previous.approved_price_cents), markup: '',
       mode: previous.pricing_mode,
     } : { ...emptyDraft });
     document.getElementById('pricing-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -96,6 +96,7 @@ export default function PricingPage() {
         depreciationCostCents: Math.ceil(monthlyDepreciation / monthlySales),
         targetMarginBps: draft.mode === 'margem' ? parseDecimal(draft.targetMargin, 'margem desejada') : 0,
         manualPriceCents: draft.mode === 'preco' ? parseDecimal(draft.manualPrice, 'preço de venda') : null,
+        markupBps: draft.mode === 'acrescimo' ? parseDecimal(draft.markup, 'acréscimo sobre o custo') : null,
       };
       quote = calculateWorkflowQuote(input);
     } catch (error) { previewError = error instanceof Error ? error.message : 'Confira os dados.'; }
@@ -110,7 +111,7 @@ export default function PricingPage() {
       const { data, error } = await db.rpc('save_jewelry_pricing_simple', {
         p_product_id: selected.id, p_packaging_model_id: selectedModel.id,
         p_monthly_sales_estimate: monthlySales,
-        p_target_margin_bps: input.targetMarginBps, p_manual_price_cents: input.manualPriceCents,
+        p_target_margin_bps: input.targetMarginBps, p_manual_price_cents: draft.mode === 'acrescimo' ? quote.priceCents : input.manualPriceCents,
       });
       if (error || !Array.isArray(data) || !data[0]?.price_cents) throw new Error('Não foi possível salvar o preço. Confira os valores e sua sessão.');
       await refresh();
@@ -127,10 +128,10 @@ export default function PricingPage() {
       <section id="pricing-editor" className="management-card workflow-pricing-editor">{!selected ? <><h2>Escolha uma joia</h2><p>Os custos do cadastro serão trazidos automaticamente para a ficha.</p></> : <><div className="jewelry-form-head"><div><p className="eyebrow">{selected.registration_code}</p><h2>{selected.name}</h2></div><span className="management-badge">{selected.workflow_stage === 'aguardando_precificacao' ? 'Preço pendente' : 'Revisar preço'}</span></div><form onSubmit={save}>
         <div className="workflow-cost-grid"><div><span>Joia · custo unitário</span><strong>{brl(selected.jewelry_intake?.acquisition_cost_cents ?? 0)}</strong></div><div><span>Insumos · depreciação mensal</span><strong>{brl(monthlyDepreciation)}</strong></div><div><span>Insumos · rateio por joia</span><strong>{depreciationPerPiece === null ? '—' : brl(depreciationPerPiece)}</strong></div></div>
         <div className="management-fields"><label className="management-wide">Modelo de embalagem<select required value={draft.modelId} onChange={event => setDraft({ ...draft, modelId: event.target.value })}><option value="">Selecione um modelo</option>{models.map(model => <option value={model.id} key={model.id}>{model.name} · {model.channel === 'local' ? 'Venda local' : 'Envio'}</option>)}</select></label>{models.length === 0 && <p className="management-wide">Cadastre primeiro um <Link href="/admin/estoque">modelo de embalagem no Estoque</Link>.</p>}<label>Estimativa de joias vendidas pela loja por mês<input required type="number" min="1" max="1000000" step="1" value={draft.monthlySales} onChange={event => setDraft({ ...draft, monthlySales: event.target.value })}/><small>Use a estimativa total da loja; o sistema divide a depreciação mensal por essa quantidade.</small></label><div className="workflow-inline-cost"><span>Embalagem por venda</span><strong>{packagingSummary ? brl(packagingSummary.costCents) : '—'}</strong><small>{packagingSummary ? `${packagingSummary.availableSets} conjunto(s) possíveis no estoque atual` : ''}</small></div></div>
-        <fieldset className="workflow-pricing-mode"><legend>Como deseja definir o preço?</legend><label><input type="radio" name="mode" checked={draft.mode === 'margem'} onChange={() => setDraft({ ...draft, mode: 'margem' })}/> Informar margem desejada</label><label><input type="radio" name="mode" checked={draft.mode === 'preco'} onChange={() => setDraft({ ...draft, mode: 'preco' })}/> Informar preço de venda</label></fieldset>
-        {draft.mode === 'margem' ? <label className="workflow-primary-input">Margem desejada sobre a venda (%)<input required inputMode="decimal" value={draft.targetMargin} onChange={event => setDraft({ ...draft, targetMargin: event.target.value })} placeholder="Ex.: 30,00"/></label> : <label className="workflow-primary-input">Preço de venda definido por você (R$)<input required inputMode="decimal" value={draft.manualPrice} onChange={event => setDraft({ ...draft, manualPrice: event.target.value })} placeholder="0,00"/></label>}
-        {quote ? <div className="workflow-result"><div><span>Custo-base por joia</span><strong>{brl(quote.fixedCostCents)}</strong></div><div><span>{draft.mode === 'margem' ? 'Preço sugerido' : 'Preço informado'}</span><strong>{brl(quote.priceCents)}</strong></div><div><span>Margem sobre o custo-base</span><strong className={quote.estimatedMarginBps < 0 ? 'workflow-loss' : ''}>{displayPercent(quote.estimatedMarginBps)}%</strong></div>{quote.estimatedMarginBps < 0 && <p>Este preço fica abaixo do custo-base por peça.</p>}</div> : <p className="management-status" role="status">{previewError}</p>}
-        <p className="workflow-disclaimer">Cálculo: custo da joia + embalagem + rateio dos insumos. O banco repetirá esta fórmula ao salvar. Preços anteriores só mudam quando você salvar uma nova precificação.</p><button className="botao" type="submit" disabled={!quote || busy}>{busy ? 'Salvando...' : 'Salvar preço e enviar ao Catálogo'}</button>
+        <fieldset className="workflow-pricing-mode"><legend>Como deseja definir o preço?</legend><label><input type="radio" name="mode" checked={draft.mode === 'margem'} onChange={() => setDraft({ ...draft, mode: 'margem' })}/> Margem sobre a venda</label><label><input type="radio" name="mode" checked={draft.mode === 'acrescimo'} onChange={() => setDraft({ ...draft, mode: 'acrescimo' })}/> Acréscimo sobre o custo</label><label><input type="radio" name="mode" checked={draft.mode === 'preco'} onChange={() => setDraft({ ...draft, mode: 'preco' })}/> Preço de venda</label></fieldset>
+        {draft.mode === 'margem' ? <label className="workflow-primary-input">Margem desejada sobre a venda (%)<input required inputMode="decimal" value={draft.targetMargin} onChange={event => setDraft({ ...draft, targetMargin: event.target.value })} placeholder="Ex.: 30,00"/></label> : draft.mode === 'acrescimo' ? <label className="workflow-primary-input">Acréscimo desejado sobre o custo (%)<input required inputMode="decimal" value={draft.markup} onChange={event => setDraft({ ...draft, markup: event.target.value })} placeholder="Ex.: 150,00"/><small>Um acréscimo de 150% sobre o custo resulta em lucro de 60% sobre a venda.</small></label> : <label className="workflow-primary-input">Preço de venda definido por você (R$)<input required inputMode="decimal" value={draft.manualPrice} onChange={event => setDraft({ ...draft, manualPrice: event.target.value })} placeholder="0,00"/></label>}
+        {quote ? <div className="workflow-result"><div><span>Custo-base por joia</span><strong>{brl(quote.fixedCostCents)}</strong></div><div><span>{draft.mode === 'preco' ? 'Preço informado' : 'Preço sugerido'}</span><strong>{brl(quote.priceCents)}</strong></div><div><span>Lucro por venda (R$)</span><strong className={quote.profitCents < 0 ? 'workflow-loss' : ''}>{brl(quote.profitCents)}</strong></div><div><span>Lucro sobre cada venda (%)</span><strong className={quote.estimatedMarginBps < 0 ? 'workflow-loss' : ''}>{displayPercent(quote.estimatedMarginBps)}%</strong></div>{quote.estimatedMarginBps < 0 && <p>Este preço fica abaixo do custo-base por peça.</p>}</div> : <p className="management-status" role="status">{previewError}</p>}
+        <p className="workflow-disclaimer">Lucro sobre a venda = (preço − custo-base) ÷ preço. O custo-base inclui apenas joia, embalagem e rateio dos insumos. Ao salvar por acréscimo, o preço sugerido é gravado como preço definido; o banco recalcula os custos e o lucro. Preços anteriores só mudam quando você salvar uma nova precificação.</p><button className="botao" type="submit" disabled={!quote || busy}>{busy ? 'Salvando...' : 'Salvar preço e enviar ao Catálogo'}</button>
       </form></>}</section></div>}
     <p role="status" className="management-status">{message}</p>{selected && selected.workflow_stage !== 'aguardando_precificacao' && <Link className="management-outline" href="/admin/catalogo">Ver joia no Catálogo de gestão →</Link>}
   </main>;
