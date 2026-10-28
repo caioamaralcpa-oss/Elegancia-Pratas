@@ -54,6 +54,7 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
   const [qrCode, setQrCode] = useState('');
   const [code, setCode] = useState('');
   const [message, setMessage] = useState('');
+  const [accountName, setAccountName] = useState('');
 
   const continueSignIn = useCallback(async () => {
     if (!db) return;
@@ -69,10 +70,11 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
       if (error || !data) { setMessage('Não foi possível iniciar a verificação em duas etapas.'); return; }
       setFactorId(data.id); setQrCode(data.totp.qr_code); return;
     }
-    const { data: role } = await db.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+    const { data: role } = await db.from('admin_users').select('role,display_name').eq('user_id', user.id).maybeSingle();
     if (role?.role !== 'administrador') {
       await db.auth.signOut(); setState('login'); setMessage('Esta conta não tem acesso ao sistema de gestão.'); return;
     }
+    setAccountName(role.display_name?.trim() || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Minha conta');
     setMessage(''); setState('ready');
   }, []);
 
@@ -128,6 +130,6 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     {state === 'loading' && <main className="management-auth"><p>Verificando acesso...</p></main>}
     {state === 'login' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Gestão Elegância</h1><p>Somente administradores autorizados podem acessar os dados da loja.</p>{db ? <form onSubmit={signIn}><label>E-mail<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)}/></label><label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)}/></label><button className="botao" type="submit">Entrar</button></form> : <p>Configuração do Supabase indisponível.</p>}<p role="status">{message}</p></main>}
     {state === 'mfa' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Verificação em duas etapas</h1>{qrCode && <><p>Escaneie o código no aplicativo autenticador.</p><img src={qrCode} alt="Código de configuração do autenticador" width="180" height="180"/></>}<form onSubmit={verifyMfa}><label>Código de seis dígitos<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code} onChange={event => setCode(event.target.value)}/></label><button className="botao" type="submit">Verificar</button></form><p role="status">{message}</p></main>}
-    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin" aria-label="Elegância Pratas · visão geral" title="Visão geral">E<span aria-hidden="true">✦</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-label={section.label} title={section.label} aria-current={pathname === section.href ? 'page' : undefined}><NavIcon name={section.icon}/><span className="sr-only">{section.label}</span></Link>)}</nav><div className="management-sidebar-bottom"><Link className="management-store-link" href="/" aria-label="Ver loja" title="Ver loja"><NavIcon name="store"/><span className="sr-only">Ver loja</span></Link><button type="button" aria-label="Sair" title="Sair" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}><NavIcon name="logout"/><span className="sr-only">Sair</span></button></div></aside><div className="management-main"><header className="management-topbar"><div><span className="management-topbar-kicker">ELEGÂNCIA PRATAS</span><strong>Gestão da loja</strong></div><span className="management-topbar-account" aria-label="Área administrativa">Administrador</span></header>{children}</div></div></ManagementContext.Provider>}
+    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin" aria-label="Elegância Pratas · visão geral" title="Visão geral">E<span aria-hidden="true">✦</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-label={section.label} title={section.label} aria-current={pathname === section.href ? 'page' : undefined}><NavIcon name={section.icon}/><span className="sr-only">{section.label}</span></Link>)}</nav><div className="management-sidebar-bottom"><Link className="management-store-link" href="/" aria-label="Ver loja" title="Ver loja"><NavIcon name="store"/><span className="sr-only">Ver loja</span></Link><button type="button" aria-label="Sair" title="Sair" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}><NavIcon name="logout"/><span className="sr-only">Sair</span></button></div></aside><div className="management-main"><header className="management-topbar"><div><span className="management-topbar-kicker">ELEGÂNCIA PRATAS</span><strong>Gestão da loja</strong></div><span className="management-topbar-account" aria-label={`Conta de ${accountName}`}><span className="management-account-avatar" aria-hidden="true">{accountName.slice(0, 1).toLocaleUpperCase('pt-BR')}</span>{accountName}</span></header>{children}</div></div></ManagementContext.Provider>}
   </div>;
 }
