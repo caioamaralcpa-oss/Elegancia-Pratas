@@ -7,5 +7,5 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const document = legalDocuments[slug];
   if (!document) notFound();
-  return <main className="secao legal"><p className="eyebrow">ELEGÂNCIA PRATAS</p><h1>{document.title}</h1><p>Última atualização: {document.updated}</p>{document.sections.map(section => <section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}</section>)}</main>;
+  return <main className="secao legal shop-legal"><p className="eyebrow">ELEGÂNCIA PRATAS</p><h1>{document.title}</h1><p>Última atualização: {document.updated}</p>{document.sections.map(section => <section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}</section>)}</main>;
 }

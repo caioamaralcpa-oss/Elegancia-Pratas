@@ -1,0 +1,67 @@
+/* Direção B: editorial escuro como padrão, claro opcional. O painel /admin não usa estas regras. */
+.store-header-actions{display:flex;align-items:center;gap:32px}
+.store-theme-toggle{display:flex;align-items:center;gap:3px;border:1px solid #ffffff55;padding:3px;color:#f8ecee;white-space:nowrap}
+.store-theme-toggle button{border:0;background:transparent;color:inherit;padding:7px 9px;font-size:.72rem;cursor:pointer}
+.store-theme-toggle button[aria-pressed=true]{background:#f5e9e9;color:#420815}
+.store-theme-toggle button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.store-theme-toggle button span{margin-left:3px}
+@media(max-width:850px){.store-header-actions{gap:14px}.store-theme-toggle button span{display:none}}
+@media(max-width:700px){.store-header-actions{width:100%;flex-direction:column;gap:13px}.store-theme-toggle button span{display:inline}.store-theme-toggle{align-self:center}.topo nav{width:auto}}
+
+html[data-store-theme=dark] .shop-catalog,html[data-store-theme=dark] .shop-detail{background:#1b060d;color:#f7edef}
+html[data-store-theme=dark] .shop-catalog-banner{background:#340b17;color:#e6cdd2}
+html[data-store-theme=dark] .shop-catalog-kicker,html[data-store-theme=dark] .shop-detail-kicker{color:#c996a3}
+html[data-store-theme=dark] .shop-catalog-intro h1,html[data-store-theme=dark] .shop-catalog-results h2,html[data-store-theme=dark] .shop-detail-summary h1,html[data-store-theme=dark] .shop-detail-related h2{color:#fff5f5}
+html[data-store-theme=dark] .shop-catalog-intro h1 em{color:#c793a0}
+html[data-store-theme=dark] .shop-catalog-intro>p:last-child,html[data-store-theme=dark] .shop-catalog-results>span{color:#c5abb1}
+html[data-store-theme=dark] .shop-catalog-search label{color:#d5bcc2}
+html[data-store-theme=dark] .shop-catalog-search>div{background:#310e19;border-color:#76505a}
+html[data-store-theme=dark] .shop-catalog-search input{color:#fff}
+html[data-store-theme=dark] .shop-catalog-search input::placeholder{color:#b99fa5}
+html[data-store-theme=dark] .shop-catalog-search button{background:#9d2c46}
+html[data-store-theme=dark] .shop-catalog-search button:hover{background:#bd4560}
+html[data-store-theme=dark] .shop-catalog-categories,html[data-store-theme=dark] .shop-detail-description,html[data-store-theme=dark] .shop-detail-specs,html[data-store-theme=dark] .shop-detail-purchase,html[data-store-theme=dark] .shop-detail-related{border-color:#5c3540}
+html[data-store-theme=dark] .shop-catalog-categories a{background:#2a0b15;border-color:#67424c;color:#ead6db}
+html[data-store-theme=dark] .shop-catalog-categories a:hover,html[data-store-theme=dark] .shop-catalog-categories a[aria-current=page]{background:#a13951;border-color:#a13951;color:#fff}
+html[data-store-theme=dark] .shop-product-image,html[data-store-theme=dark] .shop-detail-photo,html[data-store-theme=dark] .shop-detail-related-image{background:#2b1720}
+html[data-store-theme=dark] .shop-product-category,html[data-store-theme=dark] .shop-detail-breadcrumb,html[data-store-theme=dark] .shop-detail-specs>div span{color:#c09ca5}
+html[data-store-theme=dark] .shop-product-info h3,html[data-store-theme=dark] .shop-detail-description h2,html[data-store-theme=dark] .shop-detail-specs h2{color:#fff0f1}
+html[data-store-theme=dark] .shop-product-info p,html[data-store-theme=dark] .shop-detail-price,html[data-store-theme=dark] .shop-detail-breadcrumb [aria-current=page]{color:#e3b7c2}
+html[data-store-theme=dark] .shop-product-link,html[data-store-theme=dark] .shop-detail-back{color:#d5b7be;border-color:#946874}
+html[data-store-theme=dark] .shop-detail-stock,html[data-store-theme=dark] .shop-detail-description p,html[data-store-theme=dark] .shop-detail-purchase>p{color:#cbb3b9}
+html[data-store-theme=dark] .shop-detail-specs>div{border-color:#4a2933}
+html[data-store-theme=dark] .shop-detail-purchase .botao{background:#a13951;color:#fff}
+html[data-store-theme=dark] .shop-detail-purchase .botao:hover{background:#bd4560}
+html[data-store-theme=dark] .shop-detail-related-grid p{color:#e3b7c2}
+html[data-store-theme=dark] .shop-catalog-empty{background:#2a0b15;border-color:#67424c}
+html[data-store-theme=dark] .shop-catalog-empty h2{color:#fff}
+html[data-store-theme=dark] .shop-catalog-empty p,html[data-store-theme=dark] .shop-catalog-empty a{color:#e1c8ce}
+
+html[data-store-theme=light] .topo{background:#faf7f3;color:#3d1721;border-bottom-color:#d8c9c9}
+html[data-store-theme=light] .marca{color:#5b0818;text-shadow:none}
+html[data-store-theme=light] .topo nav a:hover{color:#9c3850}
+html[data-store-theme=light] .store-theme-toggle{border-color:#c9b2b8;color:#5b0818}
+html[data-store-theme=light] .store-theme-toggle button[aria-pressed=true]{background:#5b0818;color:#fff}
+html[data-store-theme=light] .editorial-announcement{background:#620f23;color:#fff}
+html[data-store-theme=light] .home-editorial,html[data-store-theme=light] .editorial-categories,html[data-store-theme=light] .editorial-products{background:#faf7f3;color:#3d1721}
+html[data-store-theme=light] .editorial-hero-shade{background:linear-gradient(90deg,#f8f1e9ee 0%,#f8f1e9b8 35%,#f8f1e912 72%)}
+html[data-store-theme=light] .editorial-hero h1,html[data-store-theme=light] .editorial-section-heading h2,html[data-store-theme=light] .editorial-products h2,html[data-store-theme=light] .editorial-about h2{color:#520b1c}
+html[data-store-theme=light] .editorial-kicker,html[data-store-theme=light] .editorial-hero-content>p:not(.editorial-kicker),html[data-store-theme=light] .editorial-section-heading>p:last-child{color:#65464e}
+html[data-store-theme=light] .editorial-button{background:#5b0818;color:#fff;border-color:#5b0818}
+html[data-store-theme=light] .editorial-button:hover{background:#7f1931;color:#fff}
+html[data-store-theme=light] .editorial-scroll{color:#5b0818}
+html[data-store-theme=light] .editorial-category-overlay,html[data-store-theme=light] .editorial-category-overlay strong{color:#fff}
+html[data-store-theme=light] .editorial-product-image{background:#eae2df}
+html[data-store-theme=light] .editorial-product h3,html[data-store-theme=light] .editorial-products-head>a{color:#4b1825}
+html[data-store-theme=light] .editorial-product p,html[data-store-theme=light] .editorial-image-note{color:#765d64}
+html[data-store-theme=light] .editorial-about{background:#f0e8e6}
+html[data-store-theme=light] .editorial-about>p:not(.editorial-kicker),html[data-store-theme=light] .editorial-about>a{color:#6d535a}
+html[data-store-theme=light] footer{background:#eae0df;color:#4b1825}
+html[data-store-theme=light] footer p{color:#73585f}
+html[data-store-theme=light] .shop-cart,html[data-store-theme=light] .shop-legal{background:#faf7f3;color:#3d1721}
+html[data-store-theme=light] .shop-cart h1,html[data-store-theme=light] .shop-cart h2,html[data-store-theme=light] .shop-legal h1,html[data-store-theme=light] .shop-legal h2{color:#520b1c}
+
+html[data-store-theme=dark] .shop-cart,html[data-store-theme=dark] .shop-legal{background:#1b060d;color:#f7edef}
+html[data-store-theme=dark] .shop-cart h1,html[data-store-theme=dark] .shop-cart h2,html[data-store-theme=dark] .shop-legal h1,html[data-store-theme=dark] .shop-legal h2{color:#fff0f1}
+html[data-store-theme=dark] .shop-cart .eyebrow,html[data-store-theme=dark] .shop-legal .eyebrow{color:#c996a3}
+html[data-store-theme=dark] .shop-legal section p{color:#d1bbc0}
