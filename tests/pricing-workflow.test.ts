@@ -4,24 +4,28 @@ import { calculateWorkflowQuote, type WorkflowPricingInput } from '../lib/pricin
 
 const base: WorkflowPricingInput = {
   acquisitionCostCents: 1000, packagingCostCents: 200, depreciationCostCents: 100,
-  laborCostCents: 100, shippingSubsidyCents: 100, otherCostCents: 0,
-  paymentFeeBps: 500, taxBps: 500, overheadBps: 0,
   targetMarginBps: 2000, manualPriceCents: null,
 };
 
-test('margem alvo calcula preço com custos, taxas e depreciação', () => {
+test('margem alvo usa somente joia, embalagem e depreciação', () => {
   const result = calculateWorkflowQuote(base);
-  assert.equal(result.fixedCostCents, 1500);
-  assert.equal(result.priceCents, 2143);
+  assert.equal(result.fixedCostCents, 1300);
+  assert.equal(result.priceCents, 1625);
   assert.ok(result.estimatedMarginBps >= 2000);
 });
 
 test('preço manual recalcula margem inclusive quando há prejuízo', () => {
-  assert.equal(calculateWorkflowQuote({ ...base, manualPriceCents: 3000 }).estimatedMarginBps, 4000);
+  assert.equal(calculateWorkflowQuote({ ...base, manualPriceCents: 3000 }).estimatedMarginBps, 5666);
   assert.ok(calculateWorkflowQuote({ ...base, manualPriceCents: 1000 }).estimatedMarginBps < 0);
 });
 
 test('rejeita percentuais impossíveis e preço sem custo', () => {
-  assert.throws(() => calculateWorkflowQuote({ ...base, targetMarginBps: 9000 }), /100%/);
-  assert.throws(() => calculateWorkflowQuote({ ...base, acquisitionCostCents: 0, packagingCostCents: 0, depreciationCostCents: 0, laborCostCents: 0, shippingSubsidyCents: 0 }), /custo/i);
+  assert.throws(() => calculateWorkflowQuote({ ...base, targetMarginBps: 10000 }), /100%/);
+  assert.throws(() => calculateWorkflowQuote({ ...base, acquisitionCostCents: 0, packagingCostCents: 0, depreciationCostCents: 0 }), /custo/i);
+});
+
+test('exemplo real: custo-base de R$ 76,24 e margem de 52%', () => {
+  const result = calculateWorkflowQuote({ acquisitionCostCents: 7600, packagingCostCents: 10, depreciationCostCents: 14, targetMarginBps: 5200, manualPriceCents: null });
+  assert.equal(result.fixedCostCents, 7624);
+  assert.equal(result.priceCents, 15884);
 });
