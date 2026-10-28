@@ -1,0 +1,36 @@
+/* Editorial Quiet Luxury — loaded last so older workflow styles cannot obscure values. */
+.management-shell{--admin-ink:#2c2525;--admin-muted:#706967;--admin-wine:#660d24;--admin-line:#e8e0dc;background:#f8f6f3;color:var(--admin-ink);font-family:Arial,Helvetica,sans-serif}
+.management-layout{grid-template-columns:78px minmax(0,1fr)}
+.management-sidebar{width:78px;background:#fffdfa;color:#641329;border-right:1px solid var(--admin-line);box-shadow:none}
+.management-brand{color:#5a0c20}.management-brand span{color:#9f7681}
+.management-sidebar nav a,.management-sidebar-bottom a,.management-sidebar-bottom button{color:#79666b}
+.management-sidebar nav a:hover,.management-sidebar nav a[aria-current=page],.management-sidebar-bottom a:hover,.management-sidebar-bottom button:hover{color:#600c22;background:#f4ebec;transform:none}
+.management-sidebar nav a[aria-current=page]{box-shadow:inset 3px 0 #7a1930}
+.management-topbar{background:#fffdfa;border-bottom-color:var(--admin-line)}
+.management-topbar-kicker{color:#8b5968}.management-topbar-account{background:#fff;border-color:#e9e1de}
+.management-account-avatar{background:#f1e8e8;color:#660d24}
+.management-page h1{font:normal clamp(2.6rem,3.7vw,4.1rem) Georgia,serif;letter-spacing:-.045em;color:#3a1721}
+.management-page h2{font-family:Georgia,serif;color:#3a1721;font-weight:normal}
+.management-intro{color:#766b6b}.management-shell .eyebrow{color:#8c5d68;letter-spacing:.16em}
+.management-card,.management-step,.sales-kpi,.management-metric{background:#fffefa;border:1px solid var(--admin-line);border-radius:6px;box-shadow:0 2px 12px #3f162208}
+.management-step:hover{border-color:#bfa5ac;box-shadow:0 6px 18px #3f16220c}
+.management-step>span,.management-step strong{color:#7d2940}
+.sales-kpi strong,.management-metric strong{font-family:Georgia,serif;color:#38242a}
+.sales-chart-track>div{background:#8a4759}.sales-chart-track{background:repeating-linear-gradient(to top,transparent 0,transparent calc(25% - 1px),#eee8e4 calc(25% - 1px),#eee8e4 25%)}
+.sales-top-rank{color:#9b7480}.sales-top-list b{color:#6f1730}
+.management-shell input,.management-shell textarea,.management-shell select{background:#fff;border-color:#d9cfcb;border-radius:4px}
+.management-outline{border-radius:4px}.management-badge{border-radius:4px}
+.workflow-cost-grid>div,.workflow-inline-cost,.stock-summary,.jewelry-cost-summary{background:#faf7f5;border:1px solid #eee5e1;border-radius:4px}
+.workflow-result{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0;background:#fffefa;color:#2c2525;border:1px solid #dcd1cd;border-radius:6px;box-shadow:0 2px 12px #3f162208;overflow:hidden}
+.workflow-result>div{display:grid;align-content:center;gap:10px;min-height:112px;padding:20px 19px;border:0;border-left:1px solid #eadfdb;background:transparent;border-radius:0}
+.workflow-result>div:first-child{border-left:0}
+.workflow-result>div:nth-child(3){background:#f6eeee;border-radius:0}
+.workflow-result span{color:#665b5c;font-size:.75rem;line-height:1.35}
+.workflow-result strong{font:normal clamp(1.4rem,2vw,1.9rem) Georgia,serif;color:#3d1824;white-space:nowrap;font-variant-numeric:tabular-nums}
+.workflow-result>div:nth-child(3) strong{color:#670f28;font-size:clamp(1.6rem,2.25vw,2.15rem)}
+.workflow-result p{color:#a33142}
+.workflow-pricing-list,.jewelry-list{background:#fffefa}.workflow-jewelry,.jewelry-item{background:#fffefa}
+.jewelry-table th{background:#f9f5f2}
+@media(max-width:1080px){.workflow-result{grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-result>div:nth-child(3){border-left:0;border-top:1px solid #eadfdb}.workflow-result>div:nth-child(4){border-top:1px solid #eadfdb}}
+@media(max-width:750px){.management-layout{grid-template-columns:1fr}.management-sidebar{width:100%;height:66px;background:#fffdfa;border-bottom:1px solid var(--admin-line);border-right:0}.management-sidebar nav a[aria-current=page]{box-shadow:inset 0 -3px #7a1930}}
+@media(max-width:560px){.workflow-result{grid-template-columns:1fr}.workflow-result>div{min-height:80px;padding:15px 18px;border-left:0;border-top:1px solid #eadfdb}.workflow-result>div:first-child{border-top:0}.workflow-result>div:nth-child(3){border-top:1px solid #eadfdb}}
