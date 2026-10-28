@@ -36,3 +36,25 @@ html[data-store-theme=dark] .preview-filters nav a,html[data-store-theme=dark] .
 html[data-store-theme=dark] .preview-filters nav a[aria-current=page]{color:#fff}
 html[data-store-theme=dark] .preview-filters select,html[data-store-theme=dark] .preview-sort select{background:#351321;color:#fff;border-color:#65404d}
 html[data-store-theme=dark] .preview-catalog .shop-product-image,html[data-store-theme=dark] .shop-detail-photo{background:#341c27}
+/* Tipografia e controles da prévia: componentes de loja, sem símbolos improvisados. */
+.topo,.preview-home,.shop-catalog,.shop-detail,.shop-cart,footer{font-family:'DM Sans',Arial,sans-serif}
+html .topo .marca,html .preview-hero-copy h1,html .preview-section-heading h2,html .preview-categories-grid span,html .preview-featured-grid h3,html .preview-about h2,html .preview-catalog-heading h1,html .preview-filters h2,html .preview-catalog .shop-product-info h3,html .shop-detail-summary h1,html .shop-detail-price,html .shop-detail-description h2,html .shop-detail-specs h2,html .shop-detail-related h2,html .shop-cart h1,html .shop-cart h2{font-family:'Cormorant Garamond',Georgia,serif}
+.topo .marca{font-size:1.75rem!important;font-weight:500;letter-spacing:.025em;text-shadow:none!important}
+.topo .marca small{font-family:'DM Sans',Arial,sans-serif;font-size:.5rem;letter-spacing:.5em}
+.store-header-main{grid-template-columns:minmax(180px,1fr) minmax(260px,470px) minmax(165px,1fr)}
+.store-header-utility{gap:18px}
+.store-bag-link{display:inline-flex;align-items:center;gap:8px;color:#4e1b2a;font-size:.76rem!important;letter-spacing:0!important;text-transform:none!important}
+.store-bag-link svg{flex:none}
+.store-header-search button{display:grid;place-items:center;width:44px;align-self:stretch}
+.store-header-nav a{font-family:'DM Sans',Arial,sans-serif;font-weight:500;font-size:.76rem!important}
+.store-theme-menu{position:relative;font-size:.73rem;color:#6a4550}
+.store-theme-menu summary{list-style:none;cursor:pointer;white-space:nowrap;padding:9px 0}
+.store-theme-menu summary::-webkit-details-marker{display:none}
+.store-theme-menu summary span{margin-left:4px}
+.store-theme-menu summary:focus-visible,.store-theme-menu button:focus-visible{outline:2px solid #6e1229;outline-offset:3px}
+.store-theme-menu>div{position:absolute;z-index:30;top:100%;right:0;width:150px;padding:6px;background:#fff;color:#40222a;border:1px solid #dfd3d0;box-shadow:0 12px 25px #2707131c}
+.store-theme-menu button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:9px 10px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.store-theme-menu button:hover,.store-theme-menu button[aria-pressed=true]{background:#f4ece9;color:#5b0b1f}
+html[data-store-theme=dark] .store-bag-link,html[data-store-theme=dark] .store-theme-menu{color:#f8ecee}
+@media(max-width:800px){.store-header-main{grid-template-columns:1fr auto}}
+@media(max-width:700px){.store-bag-link span{display:none}.store-theme-menu summary{font-size:0}.store-theme-menu summary:before{content:'Tema';font-size:.72rem}.store-theme-menu summary span{font-size:.72rem}.topo .marca{font-size:1.45rem!important}}
