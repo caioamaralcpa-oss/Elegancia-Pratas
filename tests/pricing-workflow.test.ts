@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { calculateWorkflowQuote, type WorkflowPricingInput } from '../lib/pricing-workflow.ts';
+import { calculateCostPlusProfit, calculateWorkflowQuote, type WorkflowPricingInput } from '../lib/pricing-workflow.ts';
 
 const base: WorkflowPricingInput = {
   acquisitionCostCents: 1000, packagingCostCents: 200, depreciationCostCents: 100,
@@ -35,4 +35,18 @@ test('acréscimo de 150% resulta em lucro de 60% sobre cada venda', () => {
   assert.equal(result.priceCents, 3250);
   assert.equal(result.profitCents, 1950);
   assert.equal(result.estimatedMarginBps, 6000);
+});
+
+test('preço é custo mais lucro desejado em reais', () => {
+  const result = calculateCostPlusProfit({ acquisitionCostCents: 7600, packagingCostCents: 10, depreciationCostCents: 14 }, 5000);
+  assert.equal(result.fixedCostCents, 7624);
+  assert.equal(result.profitCents, 5000);
+  assert.equal(result.priceCents, 12624);
+  assert.equal(result.estimatedMarginBps, 3960);
+});
+
+test('lucro desejado não pode ser negativo e preço não pode exceder limite', () => {
+  const costs = { acquisitionCostCents: 7600, packagingCostCents: 10, depreciationCostCents: 14 };
+  assert.throws(() => calculateCostPlusProfit(costs, -1), /lucro/i);
+  assert.throws(() => calculateCostPlusProfit(costs, 2147483647), /limite/i);
 });

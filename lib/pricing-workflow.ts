@@ -25,3 +25,13 @@ export function calculateWorkflowQuote(input: WorkflowPricingInput) {
   const estimatedMarginBps = Math.floor((priceCents - fixedCostCents) * 10000 / priceCents);
   return { fixedCostCents, priceCents, profitCents: priceCents - fixedCostCents, estimatedMarginBps };
 }
+
+export function calculateCostPlusProfit(costs: Pick<WorkflowPricingInput, 'acquisitionCostCents' | 'packagingCostCents' | 'depreciationCostCents'>, desiredProfitCents: number) {
+  if (!Number.isSafeInteger(desiredProfitCents) || desiredProfitCents < 0) throw new Error('Informe um lucro desejado válido.');
+  const fixedParts = [costs.acquisitionCostCents, costs.packagingCostCents, costs.depreciationCostCents];
+  if (fixedParts.some(value => !Number.isSafeInteger(value) || value < 0)) throw new Error('Confira os custos.');
+  const fixedCostCents = fixedParts.reduce((sum, value) => sum + value, 0);
+  const priceCents = fixedCostCents + desiredProfitCents;
+  if (fixedCostCents <= 0 || priceCents > 2147483647) throw new Error('Custo ou preço fora do limite.');
+  return { fixedCostCents, priceCents, profitCents: desiredProfitCents, estimatedMarginBps: Math.floor(desiredProfitCents * 10000 / priceCents) };
+}
