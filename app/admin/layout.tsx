@@ -23,13 +23,27 @@ export function useManagement() {
 }
 
 const sections = [
-  { href: '/admin', label: 'Visão geral' },
-  { href: '/admin/joias', label: 'Joias' },
-  { href: '/admin/estoque', label: 'Estoque' },
-  { href: '/admin/precificacao', label: 'Precificação' },
-  { href: '/admin/catalogo', label: 'Catálogo' },
-  { href: '/admin/integracoes', label: 'Integrações' },
+  { href: '/admin', label: 'Visão geral', icon: 'home' },
+  { href: '/admin/joias', label: 'Joias', icon: 'gem' },
+  { href: '/admin/estoque', label: 'Estoque', icon: 'box' },
+  { href: '/admin/precificacao', label: 'Precificação', icon: 'tag' },
+  { href: '/admin/catalogo', label: 'Catálogo', icon: 'grid' },
+  { href: '/admin/integracoes', label: 'Integrações', icon: 'link' },
 ];
+
+function NavIcon({ name }: { name: string }) {
+  const paths: Record<string, ReactNode> = {
+    home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></>,
+    gem: <><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M6 3l3 6 3 12 3-12 3-6"/></>,
+    box: <><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/></>,
+    tag: <><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1"/></>,
+    grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+    link: <><path d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-2 2"/><path d="M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l2-2"/></>,
+    logout: <><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M15 7l5 5-5 5M20 12H9"/></>,
+    store: <><path d="M3 9h18l-2-5H5zM4 9v11h16V9M9 20v-7h6v7"/></>,
+  };
+  return <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+}
 
 export default function ManagementLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -114,6 +128,6 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     {state === 'loading' && <main className="management-auth"><p>Verificando acesso...</p></main>}
     {state === 'login' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Gestão Elegância</h1><p>Somente administradores autorizados podem acessar os dados da loja.</p>{db ? <form onSubmit={signIn}><label>E-mail<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)}/></label><label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)}/></label><button className="botao" type="submit">Entrar</button></form> : <p>Configuração do Supabase indisponível.</p>}<p role="status">{message}</p></main>}
     {state === 'mfa' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Verificação em duas etapas</h1>{qrCode && <><p>Escaneie o código no aplicativo autenticador.</p><img src={qrCode} alt="Código de configuração do autenticador" width="180" height="180"/></>}<form onSubmit={verifyMfa}><label>Código de seis dígitos<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code} onChange={event => setCode(event.target.value)}/></label><button className="botao" type="submit">Verificar</button></form><p role="status">{message}</p></main>}
-    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin">ELEGÂNCIA <span>GESTÃO</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-current={pathname === section.href ? 'page' : undefined}>{section.label}</Link>)}</nav><button type="button" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}>Sair</button><Link className="management-store-link" href="/">Ver loja ↗</Link></aside><div className="management-main">{children}</div></div></ManagementContext.Provider>}
+    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin" aria-label="Elegância Pratas · visão geral" title="Visão geral">E<span aria-hidden="true">✦</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-label={section.label} title={section.label} aria-current={pathname === section.href ? 'page' : undefined}><NavIcon name={section.icon}/><span className="sr-only">{section.label}</span></Link>)}</nav><div className="management-sidebar-bottom"><Link className="management-store-link" href="/" aria-label="Ver loja" title="Ver loja"><NavIcon name="store"/><span className="sr-only">Ver loja</span></Link><button type="button" aria-label="Sair" title="Sair" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}><NavIcon name="logout"/><span className="sr-only">Sair</span></button></div></aside><div className="management-main"><header className="management-topbar"><div><span className="management-topbar-kicker">ELEGÂNCIA PRATAS</span><strong>Gestão da loja</strong></div><span className="management-topbar-account" aria-label="Área administrativa">Administrador</span></header>{children}</div></div></ManagementContext.Provider>}
   </div>;
 }
