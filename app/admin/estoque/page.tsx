@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
 import { monthlyDepreciationCents, packagingModelSummary, type ModelComponent } from '@/lib/inventory';
-import { useManagement } from '../layout';
+import { useManagement } from '../management-context';
 
 type Kind = 'embalagem' | 'insumo';
 type StockItem = { id: string; kind: Kind; name: string; unit_cost_cents: number; quantity_on_hand: number; acquired_quantity: number; acquired_on: string | null };

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { useManagement } from '../layout';
+import { useManagement } from '../management-context';
 
 type Status = { configured: boolean; connected: boolean; environment: 'sandbox' };
 

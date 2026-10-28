@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
 import { monthlyDepreciationCents, packagingModelSummary, type ModelComponent } from '@/lib/inventory';
 import { calculateWorkflowQuote, type WorkflowPricingInput } from '@/lib/pricing-workflow';
-import { useManagement } from '../layout';
+import { useManagement } from '../management-context';
 
 type Jewelry = { id: string; registration_code: string; name: string; model: string | null; stock: number; price_cents: number; workflow_stage: string; active: boolean; jewelry_intake: { acquisition_cost_cents: number } | null };
 type StockItem = { id: string; kind: 'embalagem' | 'insumo'; unit_cost_cents: number; quantity_on_hand: number; acquired_quantity: number; acquired_on: string | null };

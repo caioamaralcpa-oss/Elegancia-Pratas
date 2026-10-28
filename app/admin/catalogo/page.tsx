@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
-import { useManagement } from '../layout';
+import { useManagement } from '../management-context';
 
 type Jewelry = { id: string; registration_code: string; name: string; description: string | null; measurements: string | null; model: string | null; price_cents: number; active: boolean; commercial_image_urls: string[]; weight_grams: number | null; width_cm: number | null; height_cm: number | null; length_cm: number | null; jewelry_intake: { product_id: string } | null };
 type Draft = { name: string; description: string; measurements: string; photos: string[] };

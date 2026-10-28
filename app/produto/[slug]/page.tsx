@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { brl, products } from '@/lib/products';
 import AddToCart from './add-to-cart';
 import './produto.css';
+import './preview-product.css';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

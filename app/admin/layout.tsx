@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { createContext, useCallback, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { ManagementContext } from './management-context';
 import './management.css';
 import './queue.css';
 import './jewelry-table.css';
@@ -14,14 +15,6 @@ import './catalogo/catalog.css';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const db = url && key ? createClient(url, key) : null;
-const ManagementContext = createContext<{ db: SupabaseClient } | null>(null);
-
-export function useManagement() {
-  const value = useContext(ManagementContext);
-  if (!value) throw new Error('Acesso administrativo não disponível');
-  return value;
-}
-
 const sections = [
   { href: '/admin', label: 'Visão geral' },
   { href: '/admin/joias', label: 'Joias' },

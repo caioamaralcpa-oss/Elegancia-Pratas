@@ -1,0 +1,38 @@
+html[data-store-theme=light] .editorial-announcement{background:#5b0b1f;color:#fff;font-size:.59rem}
+.topo{display:block;min-height:0;padding:0;background:#fff!important;color:#40222a!important;border-bottom:1px solid #e5dbd9}
+.store-header-main{width:min(1380px,100%);min-height:82px;margin:auto;padding:14px max(3vw,22px);display:grid;grid-template-columns:minmax(170px,1fr) minmax(260px,480px) minmax(160px,1fr);align-items:center;gap:25px}
+.topo .marca{justify-self:start;font-size:1.55rem;color:#5b0b1f!important;text-shadow:none}
+.store-header-search{display:flex;align-items:center;background:#f5f1ef;border:1px solid #e8dfdc;min-height:42px}
+.store-header-search input{min-width:0;width:100%;border:0;background:transparent;padding:10px 16px;color:#33282a;font-size:.78rem;outline:0}
+.store-header-search input:focus-visible{outline:2px solid #762a3d;outline-offset:-2px}
+.store-header-search button{background:none;border:0;color:#5b0b1f;font-size:1.65rem;line-height:1;padding:3px 13px;cursor:pointer}
+.store-header-utility{display:flex;align-items:center;justify-content:end;gap:17px}
+.store-header-utility>a{font-size:.74rem;white-space:nowrap;text-transform:uppercase;letter-spacing:.08em}
+.store-header-utility>a span{font-size:1.3rem;margin-left:4px}
+.store-theme-toggle{color:#5b0b1f;border-color:#d8c7ca}
+.store-theme-toggle button{font-size:.8rem}
+.store-theme-toggle button span{display:none}
+.store-header-nav{display:flex!important;align-items:center;justify-content:center;gap:clamp(20px,4vw,65px)!important;min-height:45px;border-top:1px solid #f0e9e7;width:100%}
+.store-header-nav a{font-size:.72rem!important;color:#4e2b33;letter-spacing:.04em!important;text-transform:none!important}
+.store-header-nav a:hover{color:#8b2f47}
+html[data-store-theme=light] footer{background:#f5f0ee;color:#4b1825}
+@media(max-width:800px){.store-header-main{grid-template-columns:1fr auto;gap:12px}.store-header-search{grid-row:2;grid-column:1/-1}.store-header-utility{grid-column:2;grid-row:1}.store-header-nav{overflow-x:auto;justify-content:flex-start;padding:0 20px;white-space:nowrap}}
+@media(max-width:700px){.topo{padding:0}.topo .marca{font-size:1.25rem}.store-header-main{padding:12px 18px}.store-header-nav{width:100%;gap:22px!important}.store-header-search{min-height:38px}.store-header-utility>a{font-size:0}.store-header-utility>a span{font-size:1.45rem}.store-header-utility{gap:9px}}
+html[data-store-theme=dark] .topo{background:#210710!important;color:#f8ecee!important;border-color:#4e2733}
+html[data-store-theme=dark] .topo .marca,html[data-store-theme=dark] .store-header-nav a,html[data-store-theme=dark] .store-header-search button{color:#f8ecee!important}
+html[data-store-theme=dark] .store-header-nav{border-color:#4e2733}
+html[data-store-theme=dark] .store-header-search{background:#351321;border-color:#65404d}
+html[data-store-theme=dark] .store-header-search input{color:#fff}
+html[data-store-theme=dark] .store-header-search input::placeholder{color:#c8aeb7}
+html[data-store-theme=dark] .store-theme-toggle{color:#fff;border-color:#a47d89}
+html[data-store-theme=dark] .preview-home,html[data-store-theme=dark] .preview-catalog,html[data-store-theme=dark] .shop-detail{background:#1b0910;color:#f6eaed}
+html[data-store-theme=dark] .preview-categories,html[data-store-theme=dark] .preview-featured{background:#1b0910}
+html[data-store-theme=dark] .preview-section-heading h2,html[data-store-theme=dark] .preview-featured-grid h3,html[data-store-theme=dark] .preview-catalog-heading h1,html[data-store-theme=dark] .preview-filters h2,html[data-store-theme=dark] .shop-detail-summary h1{color:#fff}
+html[data-store-theme=dark] .preview-featured-grid strong,html[data-store-theme=dark] .preview-section-heading>a,html[data-store-theme=dark] .preview-categories-grid span{color:#e8c9d0}
+html[data-store-theme=dark] .preview-about{background:#341421}
+html[data-store-theme=dark] .preview-about h2,html[data-store-theme=dark] .preview-about a{color:#fff}
+html[data-store-theme=dark] .preview-catalog-heading,html[data-store-theme=dark] .preview-filters,html[data-store-theme=dark] .preview-filters nav{border-color:#60404a}
+html[data-store-theme=dark] .preview-filters nav a,html[data-store-theme=dark] .preview-sort{color:#d2bbc1}
+html[data-store-theme=dark] .preview-filters nav a[aria-current=page]{color:#fff}
+html[data-store-theme=dark] .preview-filters select,html[data-store-theme=dark] .preview-sort select{background:#351321;color:#fff;border-color:#65404d}
+html[data-store-theme=dark] .preview-catalog .shop-product-image,html[data-store-theme=dark] .shop-detail-photo{background:#341c27}

@@ -8,12 +8,12 @@ const storageKey = 'elegancia-store-theme';
 
 export default function ThemeToggle() {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
     let saved: string | null = null;
     try { saved = localStorage.getItem(storageKey); } catch { /* Navegação privada pode bloquear armazenamento. */ }
-    const selected: Theme = saved === 'light' ? 'light' : 'dark';
+    const selected: Theme = saved === 'dark' ? 'dark' : 'light';
     setTheme(selected);
     document.documentElement.dataset.storeTheme = selected;
   }, []);

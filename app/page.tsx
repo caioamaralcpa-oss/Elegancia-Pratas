@@ -1,27 +1,23 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { brl, products } from '@/lib/products';
+import './preview-home.css';
 
 // Produtos publicados no painel devem aparecer sem exigir um novo deploy.
 export const dynamic = 'force-dynamic';
 
 const categories = [
-  { name: 'Colares', image: '/images/category-colares.png', href: '/catalogo?categoria=Colares' },
-  { name: 'Anéis', image: '/images/category-aneis.png', href: '/catalogo?categoria=Anéis' },
-  { name: 'Brincos', image: '/images/category-brincos.png', href: '/catalogo?categoria=Brincos' },
+  { name: 'Anéis', image: '/images/category-aneis.png', href: '/catalogo?categoria=Anel' },
+  { name: 'Colares', image: '/images/category-colares.png', href: '/catalogo?categoria=Colar' },
+  { name: 'Brincos', image: '/images/category-brincos.png', href: '/catalogo?categoria=Brinco' },
 ];
 
 export default async function Home() {
   const items = await products();
-  return <main className="home-editorial">
-    <section className="editorial-hero" aria-labelledby="hero-title">
-      <Image className="editorial-hero-image" src="/images/editorial-hero.png" alt="Modelo usando joias prateadas em uma produção editorial vinho" fill priority sizes="100vw"/>
-      <div className="editorial-hero-shade" aria-hidden="true"/>
-      <div className="editorial-hero-content"><p className="editorial-kicker">PRATAS QUE REALÇAM A SUA ESSÊNCIA</p><h1 id="hero-title">Beleza em cada detalhe<span className="editorial-star" aria-hidden="true">✦</span></h1><p>Peças para expressar o que torna você única.</p><Link className="editorial-button" href="/catalogo">Ver coleção <span aria-hidden="true">↗</span></Link></div>
-      <a className="editorial-scroll" href="#categorias">Descubra mais <span aria-hidden="true">↓</span></a>
-    </section>
-    <section id="categorias" className="editorial-categories" aria-labelledby="categories-title"><div className="editorial-section-heading"><p className="editorial-kicker">ESCOLHA SEU BRILHO</p><h2 id="categories-title">Joias para cada momento</h2><p>Encontre o estilo que combina com você.</p></div><div className="editorial-category-grid">{categories.map(category => <Link className="editorial-category" href={category.href} key={category.name}><Image src={category.image} alt={`Imagem conceitual de ${category.name.toLowerCase()} prateados`} fill sizes="(max-width: 700px) 100vw, 33vw"/><span className="editorial-category-overlay"><strong>{category.name}</strong><span>Explorar <span aria-hidden="true">↗</span></span></span></Link>)}</div><p className="editorial-image-note">Imagens de ambientação. As peças à venda serão exibidas com fotos e informações próprias no catálogo.</p></section>
-    <section className="editorial-products" aria-labelledby="products-title"><div className="editorial-products-head"><div><p className="editorial-kicker">NOSSAS JOIAS</p><h2 id="products-title">Escolhas que encantam</h2></div><Link href="/catalogo">Ver todas as peças <span aria-hidden="true">↗</span></Link></div>{items.length ? <div className="editorial-product-grid">{items.slice(0, 4).map(product => <Link className="editorial-product" href={`/produto/${product.slug}`} key={product.id}><div className="editorial-product-image">{product.image_url ? <Image src={product.image_url} alt={product.name} fill unoptimized sizes="(max-width: 700px) 50vw, 25vw"/> : <span>Foto em breve</span>}</div><h3>{product.name}</h3><p>{brl(product.price_cents)}</p></Link>)}</div> : <div className="editorial-empty"><span aria-hidden="true">✦</span><p>A coleção está sendo preparada. Em breve, as peças estarão aqui.</p></div>}</section>
-    <section id="sobre" className="editorial-about"><span className="editorial-about-star" aria-hidden="true">✦</span><p className="editorial-kicker">ELEGÂNCIA PRATAS</p><h2>O essencial nunca deixa de brilhar.</h2><p>Uma curadoria para celebrar seus momentos e a beleza dos detalhes.</p><Link href="/catalogo">Conhecer a coleção <span aria-hidden="true">↗</span></Link></section>
+  return <main className="preview-home">
+    <section className="preview-hero" aria-labelledby="hero-title"><Image src="/images/preview-hero.png" alt="Modelo usando joias prateadas em cenário claro" fill priority sizes="100vw"/><div className="preview-hero-copy"><p>JOIAS PARA TODOS OS SEUS MOMENTOS</p><h1 id="hero-title">Beleza em cada detalhe</h1><span>Peças que acompanham a sua história.</span><Link href="/catalogo">Conheça a coleção <span aria-hidden="true">→</span></Link></div></section>
+    <section id="categorias" className="preview-categories"><div className="preview-section-heading"><div><p>EXPLORE A ELEGÂNCIA</p><h2>Encontre sua joia</h2></div><Link href="/catalogo">Ver todas as joias →</Link></div><div className="preview-categories-grid">{categories.map(category => <Link href={category.href} key={category.name}><div><Image src={category.image} alt={`Imagem conceitual da categoria ${category.name}`} fill sizes="(max-width: 600px) 30vw, 180px"/></div><span>{category.name}</span></Link>)}</div><small>Imagens das categorias são ilustrativas; as peças à venda aparecem abaixo com suas próprias fotos.</small></section>
+    <section className="preview-featured"><div className="preview-section-heading"><div><p>SELEÇÃO ELEGÂNCIA</p><h2>Joias em destaque</h2></div><Link href="/catalogo">Explorar catálogo →</Link></div>{items.length ? <div className="preview-featured-grid">{items.slice(0, 4).map(product => <Link href={`/produto/${product.slug}`} key={product.id}><div className="preview-featured-image">{product.image_url ? <Image src={product.image_url} alt={product.name} fill unoptimized sizes="(max-width: 600px) 50vw, 25vw"/> : <span>Foto em breve</span>}</div><p>{product.category}</p><h3>{product.name}</h3><strong>{brl(product.price_cents)}</strong></Link>)}</div> : <p className="preview-featured-empty">As joias aparecerão aqui após a publicação no catálogo.</p>}</section>
+    <section id="sobre" className="preview-about"><p>ELEGÂNCIA PRATAS</p><h2>Detalhes que fazem parte da sua história.</h2><Link href="/catalogo">Descubra nossas joias →</Link></section>
   </main>;
 }

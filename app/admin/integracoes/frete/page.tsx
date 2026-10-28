@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
-import { useManagement } from '../../layout';
+import { useManagement } from '../../management-context';
 
 type ShippingService = { id: number | null; name: string; carrier: string; priceCents: number; deliveryDays: number | null };
 type Quote = { environment: 'sandbox'; originCep: string; destinationCep: string; services: ShippingService[] };

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
-import { useManagement } from '../layout';
+import { useManagement } from '../management-context';
 
 type Gender = 'masculina' | 'feminina' | 'unissex';
 type Jewelry = {
