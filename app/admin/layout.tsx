@@ -72,6 +72,26 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     return () => { active = false; };
   }, [continueSignIn]);
 
+  useEffect(() => {
+    if (state !== 'ready' || !db) return;
+    let cancelled = false;
+    async function establishServerSession() {
+      const { data: { session } } = await db!.auth.getSession();
+      if (!session || cancelled) return;
+      const response = await fetch('/api/admin/session', {
+        method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store',
+      });
+      if (!response.ok) { if (!cancelled) setMessage('Não foi possível confirmar a sessão no servidor. Entre novamente.'); return; }
+      if (pathname === '/admin/acesso' && !cancelled) {
+        const requested = new URLSearchParams(window.location.search).get('next');
+        window.location.replace(requested?.startsWith('/admin') && requested !== '/admin/acesso' && !requested.startsWith('//') ? requested : '/admin');
+      }
+    }
+    void establishServerSession();
+    const refresh = window.setInterval(() => { void establishServerSession(); }, 10 * 60 * 1000);
+    return () => { cancelled = true; window.clearInterval(refresh); };
+  }, [state, pathname]);
+
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!db) return;
@@ -94,6 +114,6 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     {state === 'loading' && <main className="management-auth"><p>Verificando acesso...</p></main>}
     {state === 'login' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Gestão Elegância</h1><p>Somente administradores autorizados podem acessar os dados da loja.</p>{db ? <form onSubmit={signIn}><label>E-mail<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)}/></label><label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)}/></label><button className="botao" type="submit">Entrar</button></form> : <p>Configuração do Supabase indisponível.</p>}<p role="status">{message}</p></main>}
     {state === 'mfa' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Verificação em duas etapas</h1>{qrCode && <><p>Escaneie o código no aplicativo autenticador.</p><img src={qrCode} alt="Código de configuração do autenticador" width="180" height="180"/></>}<form onSubmit={verifyMfa}><label>Código de seis dígitos<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code} onChange={event => setCode(event.target.value)}/></label><button className="botao" type="submit">Verificar</button></form><p role="status">{message}</p></main>}
-    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin">ELEGÂNCIA <span>GESTÃO</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-current={pathname === section.href ? 'page' : undefined}>{section.label}</Link>)}</nav><button type="button" onClick={async () => { await db.auth.signOut(); setState('login'); }}>Sair</button><Link className="management-store-link" href="/">Ver loja ↗</Link></aside><div className="management-main">{children}</div></div></ManagementContext.Provider>}
+    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout"><aside className="management-sidebar"><Link className="management-brand" href="/admin">ELEGÂNCIA <span>GESTÃO</span></Link><nav aria-label="Seções da gestão">{sections.map(section => <Link key={section.href} href={section.href} aria-current={pathname === section.href ? 'page' : undefined}>{section.label}</Link>)}</nav><button type="button" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}>Sair</button><Link className="management-store-link" href="/">Ver loja ↗</Link></aside><div className="management-main">{children}</div></div></ManagementContext.Provider>}
   </div>;
 }
