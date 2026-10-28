@@ -16,6 +16,30 @@ function dimension(value: string) {
   return number;
 }
 
+async function prepareCommercialPhoto(file: File): Promise<Blob> {
+  if (file.size < 1 || file.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw new Error('Use JPG, PNG ou WebP de até 5 MB por foto.');
+  }
+  let bitmap: ImageBitmap;
+  try { bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch { throw new Error('Não foi possível abrir esta imagem. Escolha outro arquivo JPG, PNG ou WebP.'); }
+  try {
+    if (bitmap.width * bitmap.height > 25_000_000) throw new Error('A imagem tem resolução muito alta. Use até 25 megapixels.');
+    const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Seu navegador não conseguiu preparar a imagem.');
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const optimized = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', 0.82));
+    if (!optimized || optimized.type !== 'image/webp' || optimized.size > 5 * 1024 * 1024) {
+      throw new Error('Não foi possível otimizar a foto. Tente outra imagem.');
+    }
+    return optimized;
+  } finally { bitmap.close(); }
+}
+
 export default function CatalogManagementPage() {
   const { db } = useManagement();
   const [items, setItems] = useState<Jewelry[]>([]);
@@ -48,23 +72,26 @@ export default function CatalogManagementPage() {
   }
 
   async function upload(files: FileList | null) {
-    if (!files?.length || busy) return;
+    if (!files?.length || busy || !selectedId) return;
     if (files.length + draft.photos.length > 8) { setMessage('Use no máximo 8 fotos por joia.'); return; }
     setBusy(true); setMessage('Enviando fotos comerciais...');
     const next = [...draft.photos];
     try {
-      const { data: { session } } = await db.auth.getSession();
-      if (!session) throw new Error('Sua sessão expirou. Entre novamente.');
       for (const file of Array.from(files)) {
-        if (file.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Use JPG, PNG ou WebP de até 5 MB por foto.');
-        const form = new FormData(); form.set('imagem', file);
-        const response = await fetch('/api/admin/images', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body: form });
-        if (!response.ok) throw new Error('Não foi possível enviar uma das fotos. Tente novamente.');
-        const result = await response.json();
-        next.push(result.imageUrl);
+        const optimized = await prepareCommercialPhoto(file);
+        const path = `${crypto.randomUUID()}.webp`;
+        const { error } = await db.storage.from('product-images').upload(path, optimized, { contentType: 'image/webp', upsert: false });
+        if (error) throw new Error(`Não foi possível enviar a foto ao Supabase: ${error.message}`);
+        next.push(db.storage.from('product-images').getPublicUrl(path).data.publicUrl);
         setDraft(current => ({ ...current, photos: [...next] }));
       }
-      setMessage('Fotos enviadas. Salve a ficha para vinculá-las à joia.');
+      const { error } = await db.rpc('save_catalog_review', {
+        p_product_id: selectedId, p_name: draft.name.trim(), p_description: draft.description.trim(),
+        p_measurements: draft.measurements.trim(), p_image_urls: next, p_publish: null,
+      });
+      if (error) throw new Error(`Fotos enviadas, mas não vinculadas à ficha: ${error.message}. Clique em “Salvar sem publicar” para tentar novamente.`);
+      await refresh();
+      setMessage('Fotos comerciais salvas na ficha. A joia continua não publicada até você clicar em “Publicar na loja”.');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Falha no envio.'); }
     finally { setBusy(false); }
   }
