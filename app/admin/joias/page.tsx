@@ -14,6 +14,7 @@ type Jewelry = {
 };
 type Collection = { id: string; name: string };
 type Draft = { name: string; description: string; model: string; gender: Gender | ''; measurements: string; quantity: string; unitCost: string };
+type SavedConfirmation = { code: string; name: string; model: string; gender: Gender; description: string | null; measurements: string | null; quantity: number; unitCostCents: number; photoUrl: string };
 
 const emptyDraft: Draft = { name: '', description: '', model: '', gender: '', measurements: '', quantity: '1', unitCost: '' };
 const genderLabels: Record<Gender, string> = { masculina: 'Masculina', feminina: 'Feminina', unissex: 'Unissex' };
@@ -38,6 +39,8 @@ export default function JewelryPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [lastSaved, setLastSaved] = useState<SavedConfirmation | null>(null);
 
   const refresh = useCallback(async () => {
     const [jewelryResult, collectionResult] = await Promise.all([
@@ -57,12 +60,13 @@ export default function JewelryPage() {
 
   async function select(item: Jewelry | null) {
     setEditingId(item?.id ?? null);
+    setFileInputKey(key => key + 1);
     setDraft(item ? {
       name: item.name, description: item.description ?? '', model: item.model ?? '',
       gender: item.gender, measurements: item.measurements ?? '', quantity: String(item.stock),
       unitCost: item.jewelry_intake ? (item.jewelry_intake.acquisition_cost_cents / 100).toFixed(2) : '',
     } : { ...emptyDraft });
-    setImage(null); setImageUrl(null); setMessage('');
+    setImage(null); setImageUrl(null); setMessage(''); setLastSaved(null);
     const path = item?.jewelry_intake?.identification_image_path;
     if (path) {
       const { data } = await db.storage.from('jewelry-identification').createSignedUrl(path, 300);
@@ -74,12 +78,15 @@ export default function JewelryPage() {
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
-    setSaving(true); setMessage('');
+    setSaving(true); setMessage(''); setLastSaved(null);
+    let savedCode = '';
     try {
       const quantity = Number(draft.quantity);
       if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 1000000) throw new Error('Informe uma quantidade entre 0 e 1.000.000.');
       if (!draft.name.trim() || !draft.model.trim()) throw new Error('Nome e modelo são obrigatórios.');
       if (!draft.gender) throw new Error('Selecione o gênero da joia.');
+      if (!image && !current?.jewelry_intake?.identification_image_path) throw new Error('Adicione a foto de identificação para concluir o cadastro da joia.');
+      if (image && (image.size < 1 || image.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(image.type))) throw new Error('Use uma foto JPG, PNG ou WebP de até 5 MB.');
       const newCost = costInCents(draft.unitCost);
       if (current?.active && newCost !== current.jewelry_intake?.acquisition_cost_cents && !window.confirm('O custo da joia mudou. Salvar retirará a peça da loja até uma nova precificação e revisão do catálogo. Deseja continuar?')) return;
       const input = {
@@ -90,32 +97,51 @@ export default function JewelryPage() {
       const { data, error } = await db.rpc('save_jewelry_intake_v4', { ...input, p_id: editingId });
       if (error || !Array.isArray(data) || !data[0]?.id) throw new Error(error?.message ?? 'Não foi possível salvar a joia. Confira os dados e sua sessão.');
       const id = data[0].id as string;
+      savedCode = data[0].registration_code as string;
       setEditingId(id);
+      let photoPath = current?.jewelry_intake?.identification_image_path ?? null;
       if (image) {
         const { data: { session } } = await db.auth.getSession();
         if (!session) throw new Error('Joia salva, mas a sessão expirou antes do envio da foto.');
         const upload = new FormData(); upload.set('imagem', image);
-        const response = await fetch('/api/admin/images?kind=identification', {
+        let response: Response;
+        try { response = await fetch('/api/admin/images?kind=identification', {
           method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body: upload,
-        });
+        }); } catch { throw new Error('Joia salva, mas a conexão falhou durante o envio da foto. O formulário foi mantido; tente salvar novamente.'); }
         if (!response.ok) throw new Error('Joia salva, mas não foi possível enviar a foto. Tente novamente.');
         const result = await response.json();
+        if (typeof result.imagePath !== 'string') throw new Error('Joia salva, mas o envio da foto não foi confirmado. Tente novamente.');
         const { error: photoError } = await db.rpc('save_jewelry_intake_v4', {
           ...input, p_id: id, p_identification_image_path: result.imagePath,
         });
         if (photoError) throw new Error('Joia salva, mas a foto não foi vinculada. Tente novamente.');
-        const { data: signed } = await db.storage.from('jewelry-identification').createSignedUrl(result.imagePath, 300);
-        setImageUrl(signed?.signedUrl ?? null); setImage(null);
+        photoPath = result.imagePath;
       }
+      const { data: verified, error: verifyError } = await db.from('products')
+        .select('name,description,model,gender,measurements,stock,jewelry_intake(acquisition_cost_cents,identification_image_path)')
+        .eq('id', id).single();
+      const intake = Array.isArray(verified?.jewelry_intake) ? verified.jewelry_intake[0] : verified?.jewelry_intake;
+      if (verifyError || !verified || verified.name !== input.p_name || verified.model !== input.p_model || verified.gender !== input.p_gender
+        || verified.description !== (input.p_description || null) || verified.measurements !== (input.p_measurements || null)
+        || verified.stock !== quantity || intake?.acquisition_cost_cents !== newCost || !photoPath || intake.identification_image_path !== photoPath) {
+        throw new Error('Joia salva, mas não foi possível confirmar todos os dados e a foto no banco. O formulário foi mantido; confira a tabela antes de tentar novamente.');
+      }
+      const { data: signed, error: signedError } = await db.storage.from('jewelry-identification').createSignedUrl(photoPath, 300);
+      if (signedError || !signed?.signedUrl) throw new Error('Joia e foto vinculadas, mas não foi possível verificar a imagem agora. O formulário foi mantido; tente novamente.');
       await refresh();
-      setMessage(data[0].active ? `Joia ${data[0].registration_code} atualizada e permanece publicada.` : data[0].workflow_stage === 'aguardando_precificacao' && current?.active ? `Joia ${data[0].registration_code} retirada da loja após a alteração do custo. Revise o preço antes de publicar novamente.` : data[0].workflow_stage === 'aguardando_precificacao' && !current?.collection_id ? `Joia ${data[0].registration_code} salva. Defina a coleção antes de precificar.` : data[0].workflow_stage === 'aguardando_precificacao' ? `Joia ${data[0].registration_code} salva. Revise a precificação.` : `Joia ${data[0].registration_code} atualizada.`);
+      setLastSaved({ code: savedCode, name: verified.name, model: verified.model, gender: verified.gender as Gender,
+        description: verified.description, measurements: verified.measurements,
+        quantity: verified.stock, unitCostCents: intake.acquisition_cost_cents, photoUrl: signed.signedUrl });
+      setEditingId(null); setDraft({ ...emptyDraft }); setImage(null); setImageUrl(null); setFileInputKey(key => key + 1);
+      setMessage(data[0].active ? `Joia ${savedCode} salva com foto e permanece publicada.` : data[0].workflow_stage === 'aguardando_precificacao' && current?.active ? `Joia ${savedCode} salva com foto e retirada da loja após a alteração do custo. Revise o preço antes de publicar novamente.` : `Joia ${savedCode} salva com foto e informações confirmadas. Formulário pronto para uma nova joia.`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Não foi possível salvar a joia.');
       await refresh();
+      setMessage(error instanceof Error ? savedCode && error.message === 'Failed to fetch' ? `Joia ${savedCode} salva, mas uma conexão falhou antes da confirmação da foto. Confira a tabela; o formulário foi mantido.` : error.message : 'Não foi possível salvar a joia.');
     } finally { setSaving(false); }
   }
 
   const current = items.find(item => item.id === editingId);
+  const missingPhotos = items.filter(item => item.jewelry_intake && !item.jewelry_intake.identification_image_path);
   const collectionName = (id: string | null) => collections.find(collection => collection.id === id)?.name ?? 'Sem coleção';
   const visible = items.filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
   let unitCost: number | null = null;
@@ -141,7 +167,7 @@ export default function JewelryPage() {
           <label className="management-wide">Descrição<textarea rows={4} maxLength={2000} value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} placeholder="Resumo, detalhes e características da peça"/></label>
           <label>Custo unitário (R$)<input required inputMode="decimal" value={draft.unitCost} onChange={event => setDraft({ ...draft, unitCost: event.target.value })} placeholder="0,00"/></label>
           <label>Quantidade disponível<input required type="number" min="0" max="1000000" step="1" value={draft.quantity} onChange={event => setDraft({ ...draft, quantity: event.target.value })}/></label>
-          <label className="management-wide">Foto de identificação, privada<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImage(event.target.files?.[0] ?? null)}/><small>Esta foto não aparece na loja. JPG, PNG ou WebP, até 5 MB.</small></label>
+          <label className="management-wide">Foto de identificação, privada<input key={fileInputKey} type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImage(event.target.files?.[0] ?? null)}/><small>Esta foto não aparece na loja. JPG, PNG ou WebP, até 5 MB. É necessária para concluir o cadastro.</small></label>
         </div>
         {imageUrl && <img className="jewelry-private-photo" src={imageUrl} alt={`Foto de identificação de ${current?.name ?? 'joia'}`}/>}
         <div className="jewelry-cost-summary"><span>Custo por unidade <strong>{unitCost === null ? '—' : brl(unitCost)}</strong></span><span>Custo total do lote <strong>{totalCost === null ? '—' : brl(totalCost)}</strong></span></div>
@@ -149,8 +175,10 @@ export default function JewelryPage() {
         <button className="botao" type="submit" disabled={saving}>{saving ? 'Salvando...' : current ? 'Salvar alterações' : 'Salvar joia'}</button>
       </form>
       <p role="status" className="management-status">{message}</p>
+      {lastSaved && <div className="jewelry-save-confirmation" role="status"><img src={lastSaved.photoUrl} alt={`Foto de identificação de ${lastSaved.name}`}/><div><strong>Cadastro confirmado · {lastSaved.code}</strong><p>{lastSaved.name} · {lastSaved.model} · {genderLabels[lastSaved.gender]}</p><p>Quantidade: {lastSaved.quantity} · Custo unitário: {brl(lastSaved.unitCostCents)}</p><p>Medidas: {lastSaved.measurements || 'Não informadas'}</p><p>Descrição: {lastSaved.description || 'Não informada'}</p><small>Foto de identificação vinculada e dados conferidos no banco. O formulário já está pronto para outra joia.</small></div></div>}
       {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/colecoes">Definir coleções</Link></div>}
     </section>
+    <section className="management-card jewelry-missing-photos"><h2>Joias sem foto de identificação <small>{missingPhotos.length}</small></h2>{loading ? <p>Verificando fotos...</p> : missingPhotos.length === 0 ? <p>Todas as joias cadastradas têm foto de identificação.</p> : <ul>{missingPhotos.map(item => <li key={item.id}><span><strong>{item.name}</strong><small>{item.registration_code}</small></span><button type="button" className="management-outline" onClick={() => void select(item)}>Adicionar foto</button></li>)}</ul>}</section>
     <section className="management-card jewelry-table-card" aria-labelledby="registered-jewelry-title">
       <div className="jewelry-table-head"><div><h2 id="registered-jewelry-title">Joias cadastradas <small>{items.length}</small></h2><p>Custos e preços desta tabela são visíveis somente na gestão.</p></div><label>Buscar joia<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, código ou coleção"/></label></div>
       {loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll"><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
