@@ -35,3 +35,9 @@ export function calculateCostPlusProfit(costs: Pick<WorkflowPricingInput, 'acqui
   if (fixedCostCents <= 0 || priceCents > 2147483647) throw new Error('Custo ou preço fora do limite.');
   return { fixedCostCents, priceCents, profitCents: desiredProfitCents, estimatedMarginBps: Math.floor(desiredProfitCents * 10000 / priceCents) };
 }
+
+export function calculateCostPlusMarkup(costs: Pick<WorkflowPricingInput, 'acquisitionCostCents' | 'packagingCostCents' | 'depreciationCostCents'>, markupBps: number) {
+  if (!Number.isSafeInteger(markupBps) || markupBps < 0 || markupBps > 1000000) throw new Error('Informe um percentual de lucro válido (até 10.000%).');
+  const base = calculateCostPlusProfit(costs, 0);
+  return calculateCostPlusProfit(costs, Math.round(base.fixedCostCents * markupBps / 10000));
+}
