@@ -13,9 +13,9 @@ type Jewelry = {
   jewelry_intake: { acquisition_cost_cents: number; identification_image_path: string | null } | null;
 };
 type Collection = { id: string; name: string };
-type Draft = { name: string; description: string; model: string; gender: Gender | ''; measurements: string; quantity: string; unitCost: string; collectionId: string };
+type Draft = { name: string; description: string; model: string; gender: Gender | ''; measurements: string; quantity: string; unitCost: string };
 
-const emptyDraft: Draft = { name: '', description: '', model: '', gender: '', measurements: '', quantity: '1', unitCost: '', collectionId: '' };
+const emptyDraft: Draft = { name: '', description: '', model: '', gender: '', measurements: '', quantity: '1', unitCost: '' };
 const genderLabels: Record<Gender, string> = { masculina: 'Masculina', feminina: 'Feminina', unissex: 'Unissex' };
 const stageLabels: Record<string, string> = { aguardando_precificacao: 'Preço pendente', aguardando_catalogo: 'Aguardando catálogo', pronto: 'Pronta para publicar' };
 
@@ -60,7 +60,7 @@ export default function JewelryPage() {
     setDraft(item ? {
       name: item.name, description: item.description ?? '', model: item.model ?? '',
       gender: item.gender, measurements: item.measurements ?? '', quantity: String(item.stock),
-      unitCost: item.jewelry_intake ? (item.jewelry_intake.acquisition_cost_cents / 100).toFixed(2) : '', collectionId: item.collection_id ?? '',
+      unitCost: item.jewelry_intake ? (item.jewelry_intake.acquisition_cost_cents / 100).toFixed(2) : '',
     } : { ...emptyDraft });
     setImage(null); setImageUrl(null); setMessage('');
     const path = item?.jewelry_intake?.identification_image_path;
@@ -84,9 +84,8 @@ export default function JewelryPage() {
         p_name: draft.name.trim(), p_description: draft.description.trim(), p_model: draft.model.trim(),
         p_gender: draft.gender, p_measurements: draft.measurements.trim(), p_quantity: quantity,
         p_unit_cost_cents: costInCents(draft.unitCost), p_identification_image_path: null as string | null,
-        p_collection_id: draft.collectionId || null,
       };
-      const { data, error } = await db.rpc('save_jewelry_intake_v3', { ...input, p_id: editingId });
+      const { data, error } = await db.rpc('save_jewelry_intake_v2', { ...input, p_id: editingId });
       if (error || !Array.isArray(data) || !data[0]?.id) throw new Error('Não foi possível salvar a joia. Confira os dados e sua sessão.');
       const id = data[0].id as string;
       setEditingId(id);
@@ -99,7 +98,7 @@ export default function JewelryPage() {
         });
         if (!response.ok) throw new Error('Joia salva, mas não foi possível enviar a foto. Tente novamente.');
         const result = await response.json();
-        const { error: photoError } = await db.rpc('save_jewelry_intake_v3', {
+        const { error: photoError } = await db.rpc('save_jewelry_intake_v2', {
           ...input, p_id: id, p_identification_image_path: result.imagePath,
         });
         if (photoError) throw new Error('Joia salva, mas a foto não foi vinculada. Tente novamente.');
@@ -107,20 +106,11 @@ export default function JewelryPage() {
         setImageUrl(signed?.signedUrl ?? null); setImage(null);
       }
       await refresh();
-      setMessage(`Joia ${data[0].registration_code} salva. Ela já está na fila de precificação, mas não aparece no catálogo.`);
+      setMessage(current?.collection_id ? `Joia ${data[0].registration_code} salva. Ela já possui coleção e pode seguir para a Precificação.` : `Joia ${data[0].registration_code} salva. Defina a coleção na próxima etapa antes de precificar.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Não foi possível salvar a joia.');
       await refresh();
     } finally { setSaving(false); }
-  }
-
-  async function savePublishedCollection() {
-    if (!editingId || saving) return;
-    setSaving(true); setMessage('');
-    const { error } = await db.rpc('set_jewelry_collection', { p_product_id: editingId, p_collection_id: draft.collectionId || null });
-    if (error) setMessage('Não foi possível trocar a coleção da joia. Confira sua sessão.');
-    else { await refresh(); setMessage('Coleção da joia publicada atualizada.'); }
-    setSaving(false);
   }
 
   const current = items.find(item => item.id === editingId);
@@ -136,15 +126,14 @@ export default function JewelryPage() {
 
   return <main className="management-page jewelry-page">
     <p className="eyebrow">ETAPA 01 · REGISTRO</p>
-    <div className="management-title-row"><div><h1>Joias</h1><p className="management-intro">Cadastre todas as peças agora e precifique uma a uma depois. Salvar não publica a joia.</p></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
+    <div className="management-title-row"><div><h1>Joias</h1><p className="management-intro">Cadastre todas as peças aqui. Depois, distribua cada joia em uma coleção e só então defina o preço. Salvar não publica a joia.</p></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
 
     <section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
-      {current?.active ? <div className="management-fields"><p className="management-wide">Esta joia já foi publicada. Os dados comerciais podem ser editados no <Link href="/admin/catalogo">Catálogo</Link>; a coleção pode ser trocada aqui.</p><label>Coleção / campanha<select value={draft.collectionId} onChange={event => setDraft({ ...draft, collectionId: event.target.value })}><option value="">Sem coleção</option>{collections.map(collection => <option value={collection.id} key={collection.id}>{collection.name}</option>)}</select></label><div className="management-wide"><button className="management-outline" type="button" disabled={saving} onClick={() => void savePublishedCollection()}>Salvar coleção</button></div></div> : <form onSubmit={save}>
+      {current?.active ? <p>Esta joia já foi publicada. Edite a ficha comercial no <Link href="/admin/catalogo">Catálogo</Link> ou troque sua coleção em <Link href="/admin/colecoes">Coleções</Link>.</p> : <form onSubmit={save}>
         <div className="management-fields">
           <label>Nome comercial<input required maxLength={120} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Ex.: Colar Aurora"/></label>
           <label>Modelo<input required maxLength={80} list="jewelry-models" value={draft.model} onChange={event => setDraft({ ...draft, model: event.target.value })} placeholder="Ex.: Cordão"/><datalist id="jewelry-models">{['Cordão', 'Brinco', 'Pulseira', 'Choker', 'Bracelete', 'Anel', 'Pingente'].map(value => <option value={value} key={value}/>)}</datalist></label>
           <label>Gênero da joia<select required value={draft.gender} onChange={event => setDraft({ ...draft, gender: event.target.value as Draft['gender'] })}><option value="">Selecione</option><option value="feminina">Feminina</option><option value="masculina">Masculina</option><option value="unissex">Unissex</option></select></label>
-          <label>Coleção / campanha<select value={draft.collectionId} onChange={event => setDraft({ ...draft, collectionId: event.target.value })}><option value="">Sem coleção</option>{collections.map(collection => <option value={collection.id} key={collection.id}>{collection.name}</option>)}</select><small><Link href="/admin/colecoes">Cadastrar ou editar coleções →</Link></small></label>
           <label>Medidas<input maxLength={240} value={draft.measurements} onChange={event => setDraft({ ...draft, measurements: event.target.value })} placeholder="Ex.: 45 cm de comprimento"/></label>
           <label className="management-wide">Descrição<textarea rows={4} maxLength={2000} value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} placeholder="Resumo, detalhes e características da peça"/></label>
           <label>Custo unitário (R$)<input required inputMode="decimal" value={draft.unitCost} onChange={event => setDraft({ ...draft, unitCost: event.target.value })} placeholder="0,00"/></label>
@@ -153,17 +142,17 @@ export default function JewelryPage() {
         </div>
         {imageUrl && <img className="jewelry-private-photo" src={imageUrl} alt={`Foto de identificação de ${current?.name ?? 'joia'}`}/>}
         <div className="jewelry-cost-summary"><span>Custo por unidade <strong>{unitCost === null ? '—' : brl(unitCost)}</strong></span><span>Custo total do lote <strong>{totalCost === null ? '—' : brl(totalCost)}</strong></span></div>
-        <p className="jewelry-next-step">Preço de venda: pendente. Ao salvar, a joia entra na fila de precificação, mas não no catálogo.</p>
-        <button className="botao" type="submit" disabled={saving}>{saving ? 'Salvando...' : current ? 'Salvar alterações e precificar depois' : 'Salvar joia e precificar depois'}</button>
+        <p className="jewelry-next-step">Próxima etapa: <Link href="/admin/colecoes">definir a coleção</Link>. A joia só aparecerá na Precificação depois disso.</p>
+        <button className="botao" type="submit" disabled={saving}>{saving ? 'Salvando...' : current ? 'Salvar alterações' : 'Salvar joia'}</button>
       </form>}
       <p role="status" className="management-status">{message}</p>
-      {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/precificacao">Ver fila de precificação</Link></div>}
+      {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/colecoes">Definir coleções</Link></div>}
     </section>
     <section className="management-card jewelry-table-card" aria-labelledby="registered-jewelry-title">
       <div className="jewelry-table-head"><div><h2 id="registered-jewelry-title">Joias cadastradas <small>{items.length}</small></h2><p>Custos e preços desta tabela são visíveis somente na gestão.</p></div><label>Buscar joia<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, código ou coleção"/></label></div>
       {loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll"><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
         const cost = item.jewelry_intake?.acquisition_cost_cents;
-        return <tr key={item.id}><td><strong>{item.name}</strong><small>{item.registration_code}</small></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><button type="button" onClick={() => void select(item)}>Editar</button></td></tr>;
+        return <tr key={item.id}><td><strong>{item.name}</strong><small>{item.registration_code}</small></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><button type="button" onClick={() => void select(item)}>Editar</button></td></tr>;
       })}</tbody></table></div>}
     </section>
   </main>;
