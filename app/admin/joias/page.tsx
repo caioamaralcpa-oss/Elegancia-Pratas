@@ -80,13 +80,15 @@ export default function JewelryPage() {
       if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 1000000) throw new Error('Informe uma quantidade entre 0 e 1.000.000.');
       if (!draft.name.trim() || !draft.model.trim()) throw new Error('Nome e modelo são obrigatórios.');
       if (!draft.gender) throw new Error('Selecione o gênero da joia.');
+      const newCost = costInCents(draft.unitCost);
+      if (current?.active && newCost !== current.jewelry_intake?.acquisition_cost_cents && !window.confirm('O custo da joia mudou. Salvar retirará a peça da loja até uma nova precificação e revisão do catálogo. Deseja continuar?')) return;
       const input = {
         p_name: draft.name.trim(), p_description: draft.description.trim(), p_model: draft.model.trim(),
         p_gender: draft.gender, p_measurements: draft.measurements.trim(), p_quantity: quantity,
-        p_unit_cost_cents: costInCents(draft.unitCost), p_identification_image_path: null as string | null,
+        p_unit_cost_cents: newCost, p_identification_image_path: null as string | null,
       };
-      const { data, error } = await db.rpc('save_jewelry_intake_v2', { ...input, p_id: editingId });
-      if (error || !Array.isArray(data) || !data[0]?.id) throw new Error('Não foi possível salvar a joia. Confira os dados e sua sessão.');
+      const { data, error } = await db.rpc('save_jewelry_intake_v4', { ...input, p_id: editingId });
+      if (error || !Array.isArray(data) || !data[0]?.id) throw new Error(error?.message ?? 'Não foi possível salvar a joia. Confira os dados e sua sessão.');
       const id = data[0].id as string;
       setEditingId(id);
       if (image) {
@@ -98,7 +100,7 @@ export default function JewelryPage() {
         });
         if (!response.ok) throw new Error('Joia salva, mas não foi possível enviar a foto. Tente novamente.');
         const result = await response.json();
-        const { error: photoError } = await db.rpc('save_jewelry_intake_v2', {
+        const { error: photoError } = await db.rpc('save_jewelry_intake_v4', {
           ...input, p_id: id, p_identification_image_path: result.imagePath,
         });
         if (photoError) throw new Error('Joia salva, mas a foto não foi vinculada. Tente novamente.');
@@ -106,7 +108,7 @@ export default function JewelryPage() {
         setImageUrl(signed?.signedUrl ?? null); setImage(null);
       }
       await refresh();
-      setMessage(current?.collection_id ? `Joia ${data[0].registration_code} salva. Ela já possui coleção e pode seguir para a Precificação.` : `Joia ${data[0].registration_code} salva. Defina a coleção na próxima etapa antes de precificar.`);
+      setMessage(data[0].active ? `Joia ${data[0].registration_code} atualizada e permanece publicada.` : data[0].workflow_stage === 'aguardando_precificacao' && current?.active ? `Joia ${data[0].registration_code} retirada da loja após a alteração do custo. Revise o preço antes de publicar novamente.` : data[0].workflow_stage === 'aguardando_precificacao' && !current?.collection_id ? `Joia ${data[0].registration_code} salva. Defina a coleção antes de precificar.` : data[0].workflow_stage === 'aguardando_precificacao' ? `Joia ${data[0].registration_code} salva. Revise a precificação.` : `Joia ${data[0].registration_code} atualizada.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Não foi possível salvar a joia.');
       await refresh();
@@ -129,7 +131,8 @@ export default function JewelryPage() {
     <div className="management-title-row"><div><h1>Joias</h1><p className="management-intro">Cadastre todas as peças aqui. Depois, distribua cada joia em uma coleção e só então defina o preço. Salvar não publica a joia.</p></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
 
     <section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
-      {current?.active ? <p>Esta joia já foi publicada. Edite a ficha comercial no <Link href="/admin/catalogo">Catálogo</Link> ou troque sua coleção em <Link href="/admin/colecoes">Coleções</Link>.</p> : <form onSubmit={save}>
+      {current?.active && <p className="jewelry-next-step">Esta joia está publicada. Alterações nos dados e na quantidade são salvas normalmente. <strong>Se o custo unitário mudar, ela será retirada da loja para nova precificação.</strong> As fotos comerciais continuam na página <Link href="/admin/catalogo">Catálogo</Link>; a coleção é alterada em <Link href="/admin/colecoes">Coleções</Link>.</p>}
+      <form onSubmit={save}>
         <div className="management-fields">
           <label>Nome comercial<input required maxLength={120} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Ex.: Colar Aurora"/></label>
           <label>Modelo<input required maxLength={80} list="jewelry-models" value={draft.model} onChange={event => setDraft({ ...draft, model: event.target.value })} placeholder="Ex.: Cordão"/><datalist id="jewelry-models">{['Cordão', 'Brinco', 'Pulseira', 'Choker', 'Bracelete', 'Anel', 'Pingente'].map(value => <option value={value} key={value}/>)}</datalist></label>
@@ -142,9 +145,9 @@ export default function JewelryPage() {
         </div>
         {imageUrl && <img className="jewelry-private-photo" src={imageUrl} alt={`Foto de identificação de ${current?.name ?? 'joia'}`}/>}
         <div className="jewelry-cost-summary"><span>Custo por unidade <strong>{unitCost === null ? '—' : brl(unitCost)}</strong></span><span>Custo total do lote <strong>{totalCost === null ? '—' : brl(totalCost)}</strong></span></div>
-        <p className="jewelry-next-step">Próxima etapa: <Link href="/admin/colecoes">definir a coleção</Link>. A joia só aparecerá na Precificação depois disso.</p>
+        {!current?.active && <p className="jewelry-next-step">{current?.collection_id ? <>Coleção definida. Se o custo mudou, revise a <Link href="/admin/precificacao">Precificação</Link>.</> : <>Próxima etapa: <Link href="/admin/colecoes">definir a coleção</Link>. A joia só aparecerá na Precificação depois disso.</>}</p>}
         <button className="botao" type="submit" disabled={saving}>{saving ? 'Salvando...' : current ? 'Salvar alterações' : 'Salvar joia'}</button>
-      </form>}
+      </form>
       <p role="status" className="management-status">{message}</p>
       {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/colecoes">Definir coleções</Link></div>}
     </section>
