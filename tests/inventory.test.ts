@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { monthlyDepreciationCents, packagingModelSummary } from '../lib/inventory.ts';
+import { correctedInitialBalance, monthlyDepreciationCents, packagingModelSummary } from '../lib/inventory.ts';
+
+test('corrigir a quantidade inicial preserva movimentações posteriores', () => {
+  assert.equal(correctedInitialBalance(70, 100, 120), 90);
+  assert.equal(correctedInitialBalance(70, 100, 80), 50);
+  assert.throws(() => correctedInitialBalance(10, 100, 80), /saldo/i);
+});
 
 test('modelo soma os custos e calcula quantos conjuntos o estoque permite', () => {
   assert.deepEqual(packagingModelSummary([

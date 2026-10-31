@@ -1,6 +1,14 @@
 export type StockCost = { id: string; unit_cost_cents: number; quantity_on_hand: number };
 export type ModelComponent = { item_id: string; quantity: number };
 
+export function correctedInitialBalance(currentBalance: number, previousInitial: number, newInitial: number) {
+  if ([currentBalance, previousInitial, newInitial].some(value => !Number.isSafeInteger(value) || value < 0 || value > 1000000))
+    throw new Error('Quantidade fora do limite.');
+  const nextBalance = currentBalance + newInitial - previousInitial;
+  if (nextBalance < 0 || nextBalance > 1000000) throw new Error('A correção deixaria o saldo fora do limite.');
+  return nextBalance;
+}
+
 export function packagingModelSummary(components: ModelComponent[], items: StockCost[]) {
   if (components.length === 0) return { costCents: 0, availableSets: 0 };
   const byId = new Map(items.map(item => [item.id, item]));
