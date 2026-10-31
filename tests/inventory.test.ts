@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { correctedInitialBalance, monthlyDepreciationCents, packagingModelSummary } from '../lib/inventory.ts';
+import { correctedInitialBalance, monthlyDepreciationCents, packagingModelSummary, packagingUnitCostCents } from '../lib/inventory.ts';
+
+test('custo unitário da embalagem vem do custo total dividido pela quantidade', () => {
+  assert.equal(packagingUnitCostCents(3030, 50), 61);
+  assert.equal(packagingUnitCostCents(2483, 500), 5);
+  assert.throws(() => packagingUnitCostCents(100, 0), /quantidade/i);
+});
 
 test('corrigir a quantidade inicial preserva movimentações posteriores', () => {
   assert.equal(correctedInitialBalance(70, 100, 120), 90);

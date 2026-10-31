@@ -52,3 +52,8 @@
 .jewelry-page .jewelry-table-head label{width:min(280px,100%)}
 .jewelry-page .jewelry-table td,.jewelry-page .jewelry-table th{padding-left:16px;padding-right:16px}
 @media(max-width:750px){.jewelry-page .management-title-row{align-items:start}.jewelry-page .management-title-row>.management-outline{align-self:start}.jewelry-page .jewelry-editor{scroll-margin-top:82px}.jewelry-page .jewelry-table-head{align-items:stretch}.jewelry-page .jewelry-table-head label{width:100%}}
+
+.stock-unit-preview{display:grid;gap:6px;padding:16px 18px;background:#faf7f5;border:1px solid #eee5e1;border-radius:4px}
+.stock-unit-preview span{font-size:.77rem;color:#665b5c}
+.stock-unit-preview strong{font:normal 1.55rem Georgia,serif;color:#5e1329}
+.stock-unit-preview small{font-size:.72rem;color:#766b6b}

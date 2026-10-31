@@ -1,6 +1,13 @@
 export type StockCost = { id: string; unit_cost_cents: number; quantity_on_hand: number };
 export type ModelComponent = { item_id: string; quantity: number };
 
+export function packagingUnitCostCents(totalCostCents: number, initialQuantity: number) {
+  if (!Number.isSafeInteger(totalCostCents) || totalCostCents < 0 || totalCostCents > 2147483647
+    || !Number.isSafeInteger(initialQuantity) || initialQuantity < 1 || initialQuantity > 1000000)
+    throw new Error('Informe custo total e quantidade inicial válidos.');
+  return Math.round(totalCostCents / initialQuantity);
+}
+
 export function correctedInitialBalance(currentBalance: number, previousInitial: number, newInitial: number) {
   if ([currentBalance, previousInitial, newInitial].some(value => !Number.isSafeInteger(value) || value < 0 || value > 1000000))
     throw new Error('Quantidade fora do limite.');
