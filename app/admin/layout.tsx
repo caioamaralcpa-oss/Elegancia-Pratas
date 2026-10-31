@@ -26,6 +26,7 @@ export function useManagement() {
 const sections = [
   { href: '/admin', label: 'Visão geral', icon: 'home' },
   { href: '/admin/joias', label: 'Joias', icon: 'gem' },
+  { href: '/admin/colecoes', label: 'Coleções', icon: 'layers' },
   { href: '/admin/estoque', label: 'Estoque', icon: 'box' },
   { href: '/admin/precificacao', label: 'Precificação', icon: 'tag' },
   { href: '/admin/catalogo', label: 'Catálogo', icon: 'grid' },
@@ -36,6 +37,7 @@ function NavIcon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></>,
     gem: <><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M6 3l3 6 3 12 3-12 3-6"/></>,
+    layers: <><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
     box: <><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/></>,
     tag: <><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1"/></>,
     grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
