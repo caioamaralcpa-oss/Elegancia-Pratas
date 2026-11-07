@@ -43,6 +43,9 @@ export default function JewelryPage() {
   const [message, setMessage] = useState('');
   const [fileInputKey, setFileInputKey] = useState(0);
   const [lastSaved, setLastSaved] = useState<SavedConfirmation | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<Jewelry | null>(null);
+  const [deleteCode, setDeleteCode] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const refresh = useCallback(async () => {
     const [jewelryResult, collectionResult] = await Promise.all([
@@ -142,6 +145,28 @@ export default function JewelryPage() {
     } finally { setSaving(false); }
   }
 
+  async function deleteJewelry(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!deleteCandidate || deleting || deleteCode.trim() !== deleteCandidate.registration_code) return;
+    setDeleting(true); setMessage('');
+    try {
+      const { data, error } = await db.rpc('delete_jewelry', { p_product_id: deleteCandidate.id });
+      if (error || !Array.isArray(data) || !data[0]) throw new Error(error?.message ?? 'Não foi possível excluir a joia.');
+      const removed = data[0] as { registration_code: string; identification_image_path: string | null; commercial_image_paths: string[] | null };
+      const cleanup = await Promise.allSettled([
+        removed.identification_image_path ? db.storage.from('jewelry-identification').remove([removed.identification_image_path]) : Promise.resolve({ error: null }),
+        removed.commercial_image_paths?.length ? db.storage.from('product-images').remove(removed.commercial_image_paths) : Promise.resolve({ error: null }),
+      ]);
+      if (editingId === deleteCandidate.id) { setEditingId(null); setDraft({ ...emptyDraft }); setImage(null); setImageUrl(null); setFileInputKey(key => key + 1); }
+      setLastSaved(null); setDeleteCandidate(null); setDeleteCode('');
+      await refresh();
+      setMessage(cleanup.some(result => result.status === 'rejected' || result.value.error) ? `Joia ${removed.registration_code} excluída. Alguns arquivos de imagem não puderam ser removidos do armazenamento.` : `Joia ${removed.registration_code} excluída do cadastro, das coleções e da precificação. Imagens não compartilhadas removidas.`);
+    } catch (error) {
+      await refresh();
+      setMessage(error instanceof Error ? error.message : 'Não foi possível excluir a joia.');
+    } finally { setDeleting(false); }
+  }
+
   const current = items.find(item => item.id === editingId);
   const photoUrls = useIdentificationPhotos(db, items.map(item => item.jewelry_intake?.identification_image_path));
   const missingPhotos = items.filter(item => item.jewelry_intake && !item.jewelry_intake.identification_image_path);
@@ -187,8 +212,9 @@ export default function JewelryPage() {
       {loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll"><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
         const cost = item.jewelry_intake?.acquisition_cost_cents;
         const path = item.jewelry_intake?.identification_image_path;
-        return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><button type="button" onClick={() => void select(item)}>Editar</button></td></tr>;
+        return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><div className="jewelry-table-actions"><button type="button" onClick={() => void select(item)}>Editar</button><button type="button" className="jewelry-delete-button" onClick={() => { setDeleteCandidate(item); setDeleteCode(''); }}>Excluir</button></div></td></tr>;
       })}</tbody></table></div>}
     </section>
+    {deleteCandidate && <div className="jewelry-delete-backdrop"><div className="jewelry-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="jewelry-delete-title"><h2 id="jewelry-delete-title">Excluir joia?</h2><p><strong>{deleteCandidate.name}</strong> · {deleteCandidate.registration_code}</p><p>Esta ação remove o cadastro, a precificação e o vínculo com a coleção. {deleteCandidate.active ? 'A peça publicada sairá da loja imediatamente. ' : ''}Joias com histórico de pedidos não podem ser excluídas.</p><form onSubmit={deleteJewelry}><label>Digite <strong>{deleteCandidate.registration_code}</strong> para confirmar<input autoFocus autoComplete="off" value={deleteCode} onChange={event => setDeleteCode(event.target.value)} placeholder={deleteCandidate.registration_code}/></label><div className="jewelry-delete-actions"><button type="button" className="management-outline" disabled={deleting} onClick={() => { setDeleteCandidate(null); setDeleteCode(''); }}>Cancelar</button><button type="submit" className="jewelry-delete-confirm" disabled={deleting || deleteCode.trim() !== deleteCandidate.registration_code}>{deleting ? 'Excluindo...' : 'Excluir definitivamente'}</button></div></form></div></div>}
   </main>;
 }
