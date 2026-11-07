@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
+import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
+import JewelryThumbnail from '../jewelry-thumbnail';
 
 type Gender = 'masculina' | 'feminina' | 'unissex';
 type Jewelry = {
@@ -141,6 +143,7 @@ export default function JewelryPage() {
   }
 
   const current = items.find(item => item.id === editingId);
+  const photoUrls = useIdentificationPhotos(db, items.map(item => item.jewelry_intake?.identification_image_path));
   const missingPhotos = items.filter(item => item.jewelry_intake && !item.jewelry_intake.identification_image_path);
   const collectionName = (id: string | null) => collections.find(collection => collection.id === id)?.name ?? 'Sem coleção';
   const visible = items.filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
@@ -183,7 +186,8 @@ export default function JewelryPage() {
       <div className="jewelry-table-head"><div><h2 id="registered-jewelry-title">Joias cadastradas <small>{items.length}</small></h2><p>Custos e preços desta tabela são visíveis somente na gestão.</p></div><label>Buscar joia<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, código ou coleção"/></label></div>
       {loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll"><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
         const cost = item.jewelry_intake?.acquisition_cost_cents;
-        return <tr key={item.id}><td><strong>{item.name}</strong><small>{item.registration_code}</small></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><button type="button" onClick={() => void select(item)}>Editar</button></td></tr>;
+        const path = item.jewelry_intake?.identification_image_path;
+        return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><button type="button" onClick={() => void select(item)}>Editar</button></td></tr>;
       })}</tbody></table></div>}
     </section>
   </main>;
