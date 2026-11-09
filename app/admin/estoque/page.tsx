@@ -152,7 +152,7 @@ export default function StockPage() {
     catch { /* aguardando preenchimento */ }
   }
   return <main className="management-page stock-page"><p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><h1>Estoque</h1><p className="management-intro">Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão.</p>
-    <div className="stock-tabs" role="tablist" aria-label="Áreas do estoque"><button type="button" role="tab" aria-selected={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" role="tab" aria-selected={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" role="tab" aria-selected={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
+    <div className="stock-tabs" role="group" aria-label="Áreas do estoque"><button type="button" aria-pressed={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" aria-pressed={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" aria-pressed={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
     <p role="status" className="management-status">{message}</p>
     {loading ? <p>Carregando estoque...</p> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <p>Nenhum modelo cadastrado.</p> : <div className="stock-records">{models.map(model => {
       let summary: ReturnType<typeof packagingModelSummary> | null = null;
