@@ -53,14 +53,29 @@ do $$ begin
   begin insert into public.finance_entry_history(entry_id,actor_id,action,after_data) select id,auth.uid(),'INSERT','{}' from public.finance_entries limit 1; raise exception 'Histórico não deveria poder ser alterado'; exception when insufficient_privilege then null; end;
 end $$;
 
+insert into public.finance_entries(direction,description,category,amount_cents,movement_date,status) values ('entrada','Recebimento','Vendas',2500,'2026-11-02','realizado');
+insert into public.finance_entries(direction,description,category,amount_cents,movement_date,planned_date,status) values ('saida','Conta','Despesas',500,'2026-11-03','2026-11-03','previsto');
+do $ declare snapshot jsonb; nextpage jsonb; cursor_value jsonb; begin
+  snapshot := public.finance_month_snapshot('2026-11-01', 1);
+  if (snapshot->>'income_cents')::bigint <> 2500 or (snapshot->>'pending_expense_cents')::bigint <> 500 or (snapshot->>'expense_cents')::bigint <> 0 or (snapshot->>'entry_count')::bigint <> 3 then
+    raise exception 'Totais mensais incorretos: %',snapshot;
+  end if;
+  cursor_value := snapshot->'next_cursor';
+  if cursor_value is null or cursor_value = 'null'::jsonb then raise exception 'Cursor ausente'; end if;
+  nextpage := public.finance_month_snapshot('2026-11-01', 1, (cursor_value->>'movement_date')::date, (cursor_value->>'created_at')::timestamptz, (cursor_value->>'id')::uuid);
+  if (snapshot->'entries'->0->>'id') = (nextpage->'entries'->0->>'id') then raise exception 'Página repetida'; end if;
+end $;
+
 select set_config('request.jwt.claims','{"aal":"aal1"}',false);
 do $$ begin
   if (select count(*) from public.finance_entries) <> 0 or (select count(*) from public.finance_entry_history) <> 0 then raise exception 'Admin sem MFA leu dados'; end if;
+  begin perform public.finance_month_snapshot('2026-11-01'); raise exception 'Admin sem MFA consultou totais'; exception when insufficient_privilege then null; end;
   begin insert into public.finance_entries(direction,description,category,amount_cents,movement_date,status) values ('entrada','Teste','teste',1,'2026-11-01','realizado'); raise exception 'Admin sem MFA gravou'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false), set_config('request.jwt.claims','{"aal":"aal2"}',false);
 do $$ begin
   if (select count(*) from public.finance_entries) <> 0 or (select count(*) from public.finance_entry_history) <> 0 then raise exception 'Usuário sem papel leu dados'; end if;
+  begin perform public.finance_month_snapshot('2026-11-01'); raise exception 'Usuário sem papel consultou totais'; exception when insufficient_privilege then null; end;
   begin insert into public.finance_entries(direction,description,category,amount_cents,movement_date,status) values ('entrada','Teste','teste',1,'2026-11-01','realizado'); raise exception 'Usuário sem papel gravou'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
