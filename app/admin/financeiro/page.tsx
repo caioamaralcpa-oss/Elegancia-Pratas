@@ -17,13 +17,20 @@ export default function Financeiro() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [settling, setSettling] = useState<string | null>(null);
+  const [settledDate, setSettledDate] = useState(today);
   const load = useCallback(async () => {
     setEntries(null);
     const [year, m] = month.split('-').map(Number);
     const end = `${m === 12 ? year + 1 : year}-${String(m === 12 ? 1 : m + 1).padStart(2, '0')}-01`;
-    const { data, error } = await db.from('finance_entries').select('id,direction,description,category,amount_cents,movement_date,status,channel').gte('movement_date', `${month}-01`).lt('movement_date', end).order('movement_date', { ascending: false }).order('created_at', { ascending: false });
-    if (error) { setMessage('Não foi possível carregar os lançamentos. Confira a conexão e sua sessão.'); return; }
-    setEntries(data as Entry[]); setMessage('');
+    const all: Entry[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await db.from('finance_entries').select('id,direction,description,category,amount_cents,movement_date,status,channel').gte('movement_date', `${month}-01`).lt('movement_date', end).order('movement_date', { ascending: false }).order('created_at', { ascending: false }).order('id').range(offset, offset + 499);
+      if (error) { setMessage('Não foi possível carregar os lançamentos. Confira a conexão e sua sessão.'); return; }
+      all.push(...(data as Entry[]));
+      if (data.length < 500) break;
+    }
+    setEntries(all); setMessage('');
   }, [db, month]);
   useEffect(() => { void load(); }, [load]);
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -37,6 +44,14 @@ export default function Financeiro() {
     setDraft(blank()); setOpen(false);
     if (draft.movement_date.slice(0, 7) !== month) setMonth(draft.movement_date.slice(0, 7)); else await load();
   }
+  async function settle(id: string) {
+    if (!settledDate || busy) return;
+    setBusy(true); setMessage('');
+    const { data, error } = await db.from('finance_entries').update({ status: 'realizado', movement_date: settledDate }).eq('id', id).eq('status', 'previsto').select('id');
+    setBusy(false);
+    if (error || !data?.length) { setMessage('Não foi possível confirmar o lançamento. Atualize a página e tente novamente.'); return; }
+    setSettling(null); await load();
+  }
   const sum = (direction: Entry['direction'], status: Entry['status']) => (entries ?? []).filter(e => e.direction === direction && e.status === status).reduce((total, e) => total + e.amount_cents, 0);
   const income = sum('entrada', 'realizado'); const expenses = sum('saida', 'realizado');
   return <main className="management-page"><p className="eyebrow">GESTÃO FINANCEIRA</p><div className="finance-heading"><div><h1>Financeiro</h1><p className="management-intro">Acompanhe entradas e saídas por mês e registre movimentos previstos e realizados.</p></div><button className="botao" type="button" onClick={() => { setOpen(!open); setMessage(''); }}>{open ? 'Fechar' : 'Novo lançamento'}</button></div>
@@ -45,6 +60,6 @@ export default function Financeiro() {
     <p className="finance-note">Valores previstos não entram no resultado. Lance vendas presenciais e do site quando o recebimento for confirmado. Estes registros não alteram estoque ou pedidos.</p>
     {open && <form className="management-card finance-form" onSubmit={save}><h2>Novo lançamento</h2><div className="finance-form-grid"><label>Tipo<select value={draft.direction} onChange={e => setDraft({ ...draft, direction: e.target.value })}><option value="entrada">Entrada</option><option value="saida">Saída</option></select></label><label>Descrição<input required maxLength={160} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })}/></label><label>Categoria<input required maxLength={80} placeholder="Ex.: vendas, embalagem, frete" value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value })}/></label><label>Valor em reais<input required type="number" min="0.01" max="10000000" step="0.01" value={draft.amount} onChange={e => setDraft({ ...draft, amount: e.target.value })}/></label><label>Data<input required type="date" value={draft.movement_date} onChange={e => setDraft({ ...draft, movement_date: e.target.value })}/></label><label>Situação<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value })}><option value="realizado">Realizado</option><option value="previsto">Previsto</option></select></label><label>Origem ou canal<select value={draft.channel} onChange={e => setDraft({ ...draft, channel: e.target.value })}><option value="">Não informado</option><option value="site">Site</option><option value="presencial">Presencial</option><option value="whatsapp">WhatsApp</option><option value="instagram">Instagram</option><option value="outro">Outro</option></select></label></div><button disabled={busy} className="botao" type="submit">{busy ? 'Salvando…' : 'Salvar lançamento'}</button></form>}
     {message && <p role="alert" className="management-status">{message}</p>}
-    <section className="management-card finance-list"><h2>Movimentações</h2><p>Previsto: {entries ? `${brl(sum('entrada', 'previsto'))} a receber · ${brl(sum('saida', 'previsto'))} a pagar` : '—'}</p>{entries === null ? <p>{message || 'Carregando movimentações…'}</p> : entries.length === 0 ? <p>Nenhum lançamento neste mês.</p> : <div className="finance-table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Canal</th><th>Situação</th><th>Valor</th></tr></thead><tbody>{entries.map(e => <tr key={e.id}><td>{e.movement_date.split('-').reverse().join('/')}</td><td>{e.description}</td><td>{e.category}</td><td>{e.channel || '—'}</td><td>{e.status === 'realizado' ? 'Realizado' : 'Previsto'}</td><td className={e.direction === 'entrada' ? 'finance-in' : 'finance-out'}>{e.direction === 'entrada' ? '+' : '−'} {brl(e.amount_cents)}</td></tr>)}</tbody></table></div>}</section>
+    <section className="management-card finance-list"><h2>Movimentações</h2><p>Previsto: {entries ? `${brl(sum('entrada', 'previsto'))} a receber · ${brl(sum('saida', 'previsto'))} a pagar` : '—'}</p>{entries === null ? <p>{message || 'Carregando movimentações…'}</p> : entries.length === 0 ? <p>Nenhum lançamento neste mês.</p> : <div className="finance-table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Canal</th><th>Situação</th><th>Valor</th><th>Ação</th></tr></thead><tbody>{entries.map(e => <tr key={e.id}><td>{e.movement_date.split('-').reverse().join('/')}</td><td>{e.description}</td><td>{e.category}</td><td>{e.channel || '—'}</td><td>{e.status === 'realizado' ? 'Realizado' : 'Previsto'}</td><td className={e.direction === 'entrada' ? 'finance-in' : 'finance-out'}>{e.direction === 'entrada' ? '+' : '−'} {brl(e.amount_cents)}</td><td>{e.status === 'previsto' && (settling === e.id ? <div><label>Data efetiva<input type="date" value={settledDate} onChange={event => setSettledDate(event.target.value)}/></label><button type="button" disabled={busy || !settledDate} onClick={() => void settle(e.id)}>Confirmar</button><button type="button" onClick={() => setSettling(null)}>Cancelar</button></div> : <button type="button" onClick={() => { setSettledDate(today()); setSettling(e.id); }}>Marcar realizado</button>)}</td></tr>)}</tbody></table></div>}</section>
   </main>;
 }
