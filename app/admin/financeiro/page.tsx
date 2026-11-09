@@ -42,13 +42,12 @@ export default function Financeiro() {
     if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000 || Math.abs(amount * 100 - Math.round(amount * 100)) > 0.000001) { setMessage('Informe um valor válido, maior que zero e com até duas casas decimais.'); return; }
     setBusy(true); setMessage('');
     const { error } = await db.from('finance_entries').insert({ id: draft.id, planned_date: draft.status === 'previsto' ? draft.movement_date : null, direction: draft.direction, description: draft.description.trim(), category: draft.category.trim(), amount_cents: Math.round(amount * 100), movement_date: draft.movement_date, status: draft.status, channel: draft.channel || null });
-    setBusy(false);
     if (error) {
       // A response can be lost after the insert succeeds. Reuse the same identifier on retry.
       const existing = await db.from('finance_entries').select('id').eq('id', draft.id).maybeSingle();
-      if (!existing.data) { setMessage('Não foi possível confirmar o salvamento. Confira sua conexão e tente novamente.'); return; }
+      if (!existing.data) { setBusy(false); setMessage('Não foi possível confirmar o salvamento. Confira sua conexão e tente novamente.'); return; }
     }
-    setDraft(blank()); setOpen(false);
+    setBusy(false); setDraft(blank()); setOpen(false);
     if (draft.movement_date.slice(0, 7) !== month) setMonth(draft.movement_date.slice(0, 7)); else await load();
   }
   async function settle(id: string) {
