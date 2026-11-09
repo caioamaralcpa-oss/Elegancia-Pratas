@@ -12,7 +12,7 @@ create table public.finance_entries (
   channel text check (channel is null or channel in ('site', 'presencial', 'whatsapp', 'instagram', 'outro')),
   created_by uuid not null default auth.uid() references auth.users(id),
   created_at timestamptz not null default now(),
-  constraint finance_planned_date check (status <> 'previsto' or planned_date = movement_date),
+  constraint finance_planned_date check (status <> 'previsto' or (planned_date is not null and planned_date = movement_date)),
   constraint finance_cancellation_reason check ((status = 'cancelado') = (cancellation_reason is not null))
 );
 create index finance_entries_date_idx on public.finance_entries (movement_date desc, created_at desc);
