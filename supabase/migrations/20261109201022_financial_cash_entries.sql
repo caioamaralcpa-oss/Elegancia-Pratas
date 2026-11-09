@@ -6,11 +6,13 @@ create table public.finance_entries (
   category text not null check (length(trim(category)) between 1 and 80),
   amount_cents integer not null check (amount_cents > 0 and amount_cents <= 1000000000),
   movement_date date not null,
+  planned_date date,
   status text not null check (status in ('previsto', 'realizado', 'cancelado')),
   cancellation_reason text check (cancellation_reason is null or length(trim(cancellation_reason)) between 3 and 500),
   channel text check (channel is null or channel in ('site', 'presencial', 'whatsapp', 'instagram', 'outro')),
   created_by uuid not null default auth.uid() references auth.users(id),
   created_at timestamptz not null default now(),
+  constraint finance_planned_date check (status <> 'previsto' or planned_date = movement_date),
   constraint finance_cancellation_reason check ((status = 'cancelado') = (cancellation_reason is not null))
 );
 create index finance_entries_date_idx on public.finance_entries (movement_date desc, created_at desc);
@@ -54,3 +56,7 @@ $$;
 revoke all on function public.record_finance_entry_history() from public, anon, authenticated;
 create trigger finance_entry_history after insert or update on public.finance_entries
   for each row execute function public.record_finance_entry_history();
+
+-- Trigger functions are not APIs; deny the browser roles explicitly.
+revoke execute on function public.log_admin_change() from anon, authenticated;
+revoke execute on function public.has_staff_role(text[]) from anon;
