@@ -31,6 +31,7 @@ const sections = [
   { href: '/admin/estoque', label: 'Estoque', icon: 'box' },
   { href: '/admin/precificacao', label: 'Precificação', icon: 'tag' },
   { href: '/admin/catalogo', label: 'Catálogo', icon: 'grid' },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: 'wallet' },
   { href: '/admin/integracoes', label: 'Integrações', icon: 'link' },
 ];
 
@@ -42,6 +43,7 @@ function NavIcon({ name }: { name: string }) {
     box: <><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/></>,
     tag: <><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1"/></>,
     grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+    wallet: <><path d="M4 6h15a2 2 0 0 1 2 2v11H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h13"/><path d="M21 11h-5a2 2 0 0 0 0 4h5"/></>,
     link: <><path d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-2 2"/><path d="M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l2-2"/></>,
     logout: <><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M15 7l5 5-5 5M20 12H9"/></>,
     store: <><path d="M3 9h18l-2-5H5zM4 9v11h16V9M9 20v-7h6v7"/></>,
