@@ -55,7 +55,7 @@ end $$;
 
 insert into public.finance_entries(direction,description,category,amount_cents,movement_date,status) values ('entrada','Recebimento','Vendas',2500,'2026-11-02','realizado');
 insert into public.finance_entries(direction,description,category,amount_cents,movement_date,planned_date,status) values ('saida','Conta','Despesas',500,'2026-11-03','2026-11-03','previsto');
-do $ declare snapshot jsonb; nextpage jsonb; cursor_value jsonb; begin
+do $$ declare snapshot jsonb; nextpage jsonb; cursor_value jsonb; begin
   snapshot := public.finance_month_snapshot('2026-11-01', 1);
   if (snapshot->>'income_cents')::bigint <> 2500 or (snapshot->>'pending_expense_cents')::bigint <> 500 or (snapshot->>'expense_cents')::bigint <> 0 or (snapshot->>'entry_count')::bigint <> 3 then
     raise exception 'Totais mensais incorretos: %',snapshot;
@@ -64,7 +64,7 @@ do $ declare snapshot jsonb; nextpage jsonb; cursor_value jsonb; begin
   if cursor_value is null or cursor_value = 'null'::jsonb then raise exception 'Cursor ausente'; end if;
   nextpage := public.finance_month_snapshot('2026-11-01', 1, (cursor_value->>'movement_date')::date, (cursor_value->>'created_at')::timestamptz, (cursor_value->>'id')::uuid);
   if (snapshot->'entries'->0->>'id') = (nextpage->'entries'->0->>'id') then raise exception 'Página repetida'; end if;
-end $;
+end $$;
 
 select set_config('request.jwt.claims','{"aal":"aal1"}',false);
 do $$ begin
