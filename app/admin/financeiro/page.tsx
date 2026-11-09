@@ -43,7 +43,11 @@ export default function Financeiro() {
     setBusy(true); setMessage('');
     const { error } = await db.from('finance_entries').insert({ id: draft.id, planned_date: draft.status === 'previsto' ? draft.movement_date : null, direction: draft.direction, description: draft.description.trim(), category: draft.category.trim(), amount_cents: Math.round(amount * 100), movement_date: draft.movement_date, status: draft.status, channel: draft.channel || null });
     setBusy(false);
-    if (error) { setMessage('Não foi possível salvar. Confira os dados e sua sessão.'); return; }
+    if (error) {
+      // A response can be lost after the insert succeeds. Reuse the same identifier on retry.
+      const existing = await db.from('finance_entries').select('id').eq('id', draft.id).maybeSingle();
+      if (!existing.data) { setMessage('Não foi possível confirmar o salvamento. Confira sua conexão e tente novamente.'); return; }
+    }
     setDraft(blank()); setOpen(false);
     if (draft.movement_date.slice(0, 7) !== month) setMonth(draft.movement_date.slice(0, 7)); else await load();
   }
