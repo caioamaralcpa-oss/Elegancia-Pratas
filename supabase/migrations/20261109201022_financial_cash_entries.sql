@@ -15,9 +15,13 @@ create index finance_entries_date_idx on public.finance_entries (movement_date d
 alter table public.finance_entries enable row level security;
 revoke all on public.finance_entries from anon, authenticated;
 grant select, insert on public.finance_entries to authenticated;
+grant update (status, movement_date) on public.finance_entries to authenticated;
 create policy "finance admin read with mfa" on public.finance_entries for select to authenticated
   using (public.has_staff_role(array['administrador']));
 create policy "finance admin insert with mfa" on public.finance_entries for insert to authenticated
   with check (public.has_staff_role(array['administrador']) and created_by = (select auth.uid()));
-create trigger audit_finance_entries after insert on public.finance_entries
+create policy "finance admin update with mfa" on public.finance_entries for update to authenticated
+  using (public.has_staff_role(array['administrador']) and status = 'previsto')
+  with check (public.has_staff_role(array['administrador']) and status = 'realizado');
+create trigger audit_finance_entries after insert or update on public.finance_entries
   for each row execute function public.log_admin_change();
