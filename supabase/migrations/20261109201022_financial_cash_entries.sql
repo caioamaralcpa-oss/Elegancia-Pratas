@@ -23,7 +23,7 @@ grant update (status, movement_date, cancellation_reason) on public.finance_entr
 create policy "finance admin read with mfa" on public.finance_entries for select to authenticated
   using (public.has_staff_role(array['administrador']));
 create policy "finance admin insert with mfa" on public.finance_entries for insert to authenticated
-  with check (public.has_staff_role(array['administrador']) and created_by = (select auth.uid()));
+  with check (public.has_staff_role(array['administrador']) and created_by = (select auth.uid()) and status in ('previsto', 'realizado'));
 create policy "finance admin update with mfa" on public.finance_entries for update to authenticated
   using (public.has_staff_role(array['administrador']) and status in ('previsto', 'realizado'))
   with check (public.has_staff_role(array['administrador']) and status in ('realizado', 'cancelado'));
@@ -60,3 +60,18 @@ create trigger finance_entry_history after insert or update on public.finance_en
 -- Trigger functions are not APIs; deny the browser roles explicitly.
 revoke execute on function public.log_admin_change() from anon, authenticated;
 revoke execute on function public.has_staff_role(text[]) from anon;
+
+create function public.guard_finance_transition() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if not ((old.status = 'previsto' and new.status in ('realizado','cancelado')) or (old.status = 'realizado' and new.status = 'cancelado')) then
+    raise exception 'Transição financeira inválida';
+  end if;
+  if new.status = 'cancelado' and new.movement_date is distinct from old.movement_date then
+    raise exception 'Cancelamento não pode alterar a data do lançamento';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.guard_finance_transition() from public, anon, authenticated;
+create trigger finance_transition before update on public.finance_entries
+  for each row execute function public.guard_finance_transition();
