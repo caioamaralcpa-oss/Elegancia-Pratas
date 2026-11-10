@@ -1,4 +1,5 @@
 'use client';
+import { PageHeader } from './ui/components';
 
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -67,7 +68,7 @@ export default function ManagementHome() {
   const maxRevenue = Math.max(1, ...(sales?.months ?? []).map(month => month.revenue_cents));
   const ticket = sales && sales.paid_orders > 0 ? Math.round(sales.gross_revenue_cents / sales.paid_orders) : 0;
 
-  return <main className="management-page"><p className="eyebrow">CENTRAL DE GESTÃO</p><h1>Visão geral</h1><p className="management-intro">Acompanhe os indicadores da loja e acesse as etapas da operação.</p>
+  return <main className="management-page"><p className="eyebrow">CENTRAL DE GESTÃO</p><PageHeader title={"Visão geral"} description={"Acompanhe os indicadores da loja e acesse as etapas da operação."}/>
     <OperationInsights/><h2 className="management-subheading">Desempenho de vendas</h2>
     <section className="sales-kpis" aria-label="Indicadores de vendas"><div className="sales-kpi"><span>Pedidos pagos</span><strong>{sales ? sales.paid_orders : '—'}</strong><small>Não inclui pedidos cancelados</small></div><div className="sales-kpi"><span>Receita dos pedidos</span><strong>{sales ? brl(sales.gross_revenue_cents) : '—'}</strong><small>Inclui o frete cobrado</small></div><div className="sales-kpi"><span>Ticket médio</span><strong>{sales ? brl(ticket) : '—'}</strong><small>Receita ÷ pedidos pagos</small></div><div className="sales-kpi"><span>Aguardando pagamento</span><strong>{sales ? sales.pending_orders : '—'}</strong><small>Não entram na receita</small></div></section>
     {salesError && <p className="management-status" role="status">Não foi possível carregar as vendas. Confira sua sessão e a atualização do banco.</p>}
