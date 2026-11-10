@@ -65,7 +65,7 @@ export default function JewelryPage() {
   const [deleting, setDeleting] = useState(false);
 
   const refresh = useCallback(async () => {
-    setLoading(true);setLoadError(false);
+    setLoading(true);setLoadError(false);setMessage('');
     const [jewelryResult, collectionResult] = await Promise.all([
       db.from('products').select('id,registration_code,name,description,model,category,gender,measurements,stock,price_cents,workflow_stage,active,collection_id,commercial_image_urls,jewelry_intake(acquisition_cost_cents,identification_image_path)').order('created_at', { ascending: false }),
       db.from('collections').select('id,name').order('name'),
