@@ -8,7 +8,7 @@ import { calculateCostPlusMarkup, calculateCostPlusProfit } from '@/lib/pricing-
 import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
 import JewelryThumbnail from '../jewelry-thumbnail';
-import { Workflow } from '../ui/components';
+import { Workflow, PageHeader } from '../ui/components';
 
 type Jewelry = { id: string; registration_code: string; name: string; model: string | null; stock: number; price_cents: number; workflow_stage: string; active: boolean; collection_id: string | null; collections: { name: string } | null; jewelry_intake: { acquisition_cost_cents: number; identification_image_path: string | null } | null };
 type StockItem = { id: string; kind: 'embalagem' | 'insumo'; unit_cost_cents: number; quantity_on_hand: number; acquired_quantity: number; acquired_on: string | null };
@@ -135,7 +135,7 @@ export default function PricingPage() {
 
   const pending = jewelry.filter(item => item.workflow_stage === 'aguardando_precificacao');
   const priced = jewelry.filter(item => item.workflow_stage !== 'aguardando_precificacao');
-  return <main className="management-page"><p className="eyebrow">ETAPA 03 · CUSTO E LUCRO</p><h1>Precificação</h1><p className="management-intro">Somente joias vinculadas a uma coleção aparecem aqui. Selecione uma peça, escolha a embalagem e confira o preço. Salvar não publica a peça na loja.</p>
+  return <main className="management-page"><p className="eyebrow">ETAPA 03 · CUSTO E LUCRO</p><PageHeader title={"Precificação"} description={"Somente joias vinculadas a uma coleção aparecem aqui. Selecione uma peça, escolha a embalagem e confira o preço. Salvar não publica a peça na loja."}/>
     <div className="pricing-queue-summary"><div><strong>{pending.length}</strong><span>Aguardando preço</span></div><div><strong>{priced.length}</strong><span>Com preço definido</span></div></div>
     {loading ? <p>Carregando joias e custos...</p> : <><div className="pricing-tables"><PricingTable title="Aguardando precificação" rows={pending} pending selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/><PricingTable title="Joias precificadas" rows={priced} pending={false} selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/></div>{jewelry.length === 0 && <p className="management-status">Nenhuma joia com coleção definida. <Link href="/admin/colecoes">Definir coleções →</Link></p>}
       {selected && <section id="pricing-editor" className="management-card workflow-pricing-editor"><div className="pricing-editor-top"><JewelryThumbnail url={selected.jewelry_intake?.identification_image_path ? photoUrls[selected.jewelry_intake.identification_image_path] : undefined} name={selected.name} hasPhoto={Boolean(selected.jewelry_intake?.identification_image_path)}/><div className="jewelry-form-head"><div><p className="eyebrow">{selected.registration_code}</p><h2>{selected.name}</h2><p><span className="pricing-collection-label">Coleção:</span> <span className="pricing-collection-tag">{selected.collections?.name ?? 'Coleção não informada'}</span> <span className="pricing-model-label">· {selected.model ?? 'Modelo não informado'}</span></p></div><span className="management-badge">{selected.workflow_stage === 'aguardando_precificacao' ? 'Preço pendente' : 'Revisar preço'}</span></div></div><Workflow collection={Boolean(selected.collection_id)} priced={selected.workflow_stage!=='aguardando_precificacao'&&selected.price_cents>0} published={selected.active}/><form onSubmit={save}>
