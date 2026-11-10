@@ -1,5 +1,5 @@
 'use client';
-import { PageHeader } from '../ui/components';
+import { Skeleton, PageHeader } from '../ui/components';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
@@ -157,7 +157,7 @@ export default function StockPage() {
     <div className="erp-insights"><article className="erp-insight"><span>Embalagens cadastradas</span><strong>{items.filter(x=>x.kind==='embalagem').length}</strong><span>Tipos de embalagem</span></article><article className="erp-insight"><span>Itens com saldo zero</span><strong>{items.filter(x=>x.quantity_on_hand===0).length}</strong><span>Revisar necessidade de reposição</span></article><article className="erp-insight"><span>Modelos de embalagem</span><strong>{models.length}</strong><span>Composições disponíveis</span></article></div><div className="erp-toolbar"><label>Buscar item<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome da embalagem ou insumo"/></label></div>
     <div className="stock-tabs" role="group" aria-label="Áreas do estoque"><button type="button" aria-pressed={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" aria-pressed={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" aria-pressed={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
     <p role="status" className="management-status">{message}</p>
-    {loading ? <p>Carregando estoque...</p> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <p>Nenhum modelo cadastrado.</p> : <div className="stock-records">{models.map(model => {
+    {loading ? <Skeleton label="Carregando estoque"/> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <p>Nenhum modelo cadastrado.</p> : <div className="stock-records">{models.map(model => {
       let summary: ReturnType<typeof packagingModelSummary> | null = null;
       try { summary = packagingModelSummary(model.packaging_model_components, packaging); } catch { /* item ausente */ }
       return <article key={model.id}><div><strong>{model.name}</strong><small>{model.channel === 'local' ? 'Venda local' : 'Envio'} · {model.packaging_model_components.length} componente(s)</small></div><div><strong>{summary ? brl(summary.costCents) : '—'}</strong><small>{summary?.availableSets ?? 0} conjunto(s) possíveis com o saldo atual</small></div><button type="button" onClick={() => editModel(model)}>Editar</button></article>;
