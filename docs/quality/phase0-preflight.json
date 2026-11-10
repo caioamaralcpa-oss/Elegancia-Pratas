@@ -1,0 +1,91 @@
+{
+  "phase": 0,
+  "status": "technical_checks_passed_waiting_for_user_backups",
+  "commit": "c1332b406ce354a6f309ea7d2f98921447827e11",
+  "node": "v24.22.1",
+  "startedAt": "2026-11-10T17:50:13.295Z",
+  "steps": [
+    {
+      "name": "ci",
+      "exitCode": 0,
+      "signal": null,
+      "seconds": 8,
+      "error": null
+    },
+    {
+      "name": "test",
+      "exitCode": 0,
+      "signal": null,
+      "seconds": 1,
+      "error": null
+    },
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "signal": null,
+      "seconds": 3,
+      "error": null
+    },
+    {
+      "name": "build",
+      "exitCode": 0,
+      "signal": null,
+      "seconds": 27,
+      "error": null
+    }
+  ],
+  "completedAt": "2026-11-10T17:50:52.244Z",
+  "audit": {
+    "base": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+    "commit": "c1332b406ce354a6f309ea7d2f98921447827e11",
+    "changedFiles": 22,
+    "protectedDiff": "",
+    "configurationDiff": [],
+    "sqlDiff": [],
+    "checkedFunctions": 19,
+    "differentBodies": [],
+    "treeClean": true,
+    "rpcContracts": {
+      "beforeCalls": 14,
+      "afterCalls": 15,
+      "added": [],
+      "removed": [],
+      "note": "One additional collection drag-and-drop invocation reuses assign_jewelry_collection with the same p_product_ids and p_collection_id contract; original save functions and SQL definitions unchanged."
+    }
+  },
+  "npm": "11.19.1",
+  "tests": {
+    "passed": 28,
+    "failed": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 4
+  },
+  "npmAudit": {
+    "reportedVulnerabilities": 0
+  },
+  "warnings": [
+    "Preexisting storefront img lint warnings",
+    "eslint@9.39.5 deprecation notice",
+    "unrs-resolver@1.12.2 postinstall not allowlisted; commands still passed"
+  ],
+  "buildCredentials": "Deliberately invalid, cloud-only; no production Supabase credentials",
+  "production": {
+    "id": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
+    "url": "https://eleganciapratas-f8s7mcuk4-99caio.vercel.app",
+    "official": "https://eleganciapratas.vercel.app",
+    "commit": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+    "state": "READY",
+    "isRollbackCandidate": true,
+    "rollbackExecuted": false,
+    "role": "OWNER"
+  },
+  "github": {
+    "mergeCommitAllowed": true,
+    "mergeable": true,
+    "draft": true
+  },
+  "userBackupConfirmation": "Not completed, confirmed by user in this conversation",
+  "productionMutations": 0
+}
