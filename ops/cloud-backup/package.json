@@ -11,5 +11,8 @@
     "@vercel/sandbox": "3.9.1",
     "@vercel/blob": "2.9.0",
     "pg": "8.23.1"
+  },
+  "overrides": {
+    "zod": "4.6.6"
   }
 }
