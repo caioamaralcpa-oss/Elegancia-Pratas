@@ -1,0 +1,15 @@
+{
+  "name": "elegancia-backup-privado",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "backup": "node backup.mjs",
+    "test": "node --test worker.test.mjs"
+  },
+  "dependencies": {
+    "@vercel/sandbox": "3.9.1",
+    "@vercel/blob": "2.9.0",
+    "pg": "8.23.1"
+  }
+}
