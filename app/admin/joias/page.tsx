@@ -42,6 +42,7 @@ export default function JewelryPage() {
   const [view,setView] = useState('tabela');
   const [page,setPage]=useState(1);
   const [showCosts,setShowCosts]=useState(true);
+  useEffect(()=>{if(window.matchMedia('(max-width:600px)').matches)setView('grade');},[]);
   useEffect(()=>{setPage(1)},[query,statusFilter,sort]);
   useEffect(()=>{const q=new URLSearchParams(window.location.search).get('q');if(q)setQuery(q);},[]);
   const [editingId, setEditingId] = useState<string | null>(null);
