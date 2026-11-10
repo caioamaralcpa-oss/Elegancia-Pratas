@@ -14,3 +14,37 @@
 .jewelry-editor{max-width:850px;margin-top:26px;scroll-margin-top:25px}
 .jewelry-table-actions{display:flex;gap:7px;white-space:nowrap}.jewelry-table button.jewelry-delete-button{border-color:#b77f85;color:#902b3a}.jewelry-table button.jewelry-delete-button:hover{background:#902b3a;color:#fff}.jewelry-delete-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#22060dcc}.jewelry-delete-dialog{width:min(480px,100%);padding:28px;background:#fffefa;border:1px solid #d9c7c3;box-shadow:0 20px 80px #17040b55}.jewelry-delete-dialog h2{margin:0 0 12px}.jewelry-delete-dialog p{line-height:1.5}.jewelry-delete-dialog form{display:grid;gap:18px;margin-top:22px}.jewelry-delete-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}.jewelry-delete-confirm{border:1px solid #902b3a;background:#902b3a;color:#fff;padding:12px 16px;cursor:pointer}.jewelry-delete-confirm:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:750px){.jewelry-table-head{padding:20px;display:grid}.jewelry-table-head label{min-width:0}}
+
+/* Keep all columns within the available management area. */
+.jewelry-table-scroll{overflow-x:visible}
+.jewelry-table{min-width:0;table-layout:fixed}
+.jewelry-table th,.jewelry-table td{padding:12px 8px;overflow-wrap:anywhere;white-space:normal}
+.jewelry-table th:first-child{width:19%}
+.jewelry-table th:nth-child(2),.jewelry-table th:nth-child(3){width:9%}
+.jewelry-table th:nth-child(4){width:8%}
+.jewelry-table th:nth-child(5){width:5%}
+.jewelry-table th:nth-child(6),.jewelry-table th:nth-child(7),.jewelry-table th:nth-child(8){width:9%}
+.jewelry-table th:nth-child(9){width:12%}
+.jewelry-table th:last-child{width:11%}
+.jewelry-table td:first-child{min-width:0}
+.jewelry-table td:nth-child(n){white-space:normal}
+.jewelry-table .management-badge{white-space:normal;overflow-wrap:anywhere}
+.jewelry-table-actions{flex-wrap:wrap;white-space:normal}
+@media(max-width:1100px){
+ .jewelry-table,.jewelry-table tbody,.jewelry-table tr,.jewelry-table td{display:block;width:100%}
+ .jewelry-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+ .jewelry-table tr{padding:16px;border-top:1px solid #eee3e0}
+ .jewelry-table td{display:grid;grid-template-columns:minmax(105px,35%) minmax(0,1fr);gap:8px;padding:7px 0;border:0}
+ .jewelry-table td::before{color:#6e5359;font-size:.72rem;font-weight:600}
+ .jewelry-table td:nth-child(1)::before{content:'Joia'}
+ .jewelry-table td:nth-child(2)::before{content:'Modelo'}
+ .jewelry-table td:nth-child(3)::before{content:'Coleção'}
+ .jewelry-table td:nth-child(4)::before{content:'Gênero'}
+ .jewelry-table td:nth-child(5)::before{content:'Quantidade'}
+ .jewelry-table td:nth-child(6)::before{content:'Custo unitário'}
+ .jewelry-table td:nth-child(7)::before{content:'Custo total'}
+ .jewelry-table td:nth-child(8)::before{content:'Preço de venda'}
+ .jewelry-table td:nth-child(9)::before{content:'Situação'}
+ .jewelry-table td:nth-child(10)::before{content:'Ações'}
+ .jewelry-table .management-badge{justify-self:start}
+}
