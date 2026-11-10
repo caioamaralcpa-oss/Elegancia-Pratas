@@ -24,6 +24,7 @@ export default function StockPage() {
   const { db } = useManagement();
   const [query,setQuery]=useState('');
   const [tab, setTab] = useState<Kind | 'modelos'>('embalagem');
+  useEffect(()=>{const area=new URLSearchParams(window.location.search).get('area');if(area==='insumo'||area==='embalagem'){setTab(area);setItemDraft({kind:area,name:'',unitCost:'',initialQuantity:'0',acquiredOn:''});}},[]);
   const [items, setItems] = useState<StockItem[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [models, setModels] = useState<PackagingModel[]>([]);
