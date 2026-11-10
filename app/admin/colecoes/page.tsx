@@ -36,7 +36,7 @@ export default function CollectionsPage() {
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
-    setLoading(true);setLoadError(false);
+    setLoading(true);setLoadError(false);setMessage('');
     const [collectionResult, jewelryResult] = await Promise.all([
       db.from('collections').select('id,name').order('name'),
       db.from('products').select('id,registration_code,name,model,collection_id,workflow_stage,active,jewelry_intake(product_id,identification_image_path)').order('created_at', { ascending: false }),
