@@ -14,5 +14,5 @@ export function Workflow({ collection, priced, published }: { collection: boolea
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const el = ref.current; if (open && el && !el.open) el.showModal(); else if (!open && el?.open) el.close(); }, [open]);
-  return <dialog ref={ref} className="erp-dialog" aria-label={title} onCancel={onClose} onClose={onClose}><div className="erp-dialog-header"><h2>{title}</h2><button type="button" className="management-outline" onClick={onClose}>Fechar</button></div>{children}</dialog>;
+  return <dialog ref={ref} className="erp-dialog" aria-label={title} onCancel={event=>{event.preventDefault();onClose();}} onClose={onClose}><div className="erp-dialog-header"><h2>{title}</h2><button type="button" className="management-outline" onClick={onClose}>Fechar</button></div>{children}</dialog>;
 }
