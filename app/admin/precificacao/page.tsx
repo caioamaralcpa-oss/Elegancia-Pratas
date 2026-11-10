@@ -8,7 +8,7 @@ import { calculateCostPlusMarkup, calculateCostPlusProfit } from '@/lib/pricing-
 import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
 import JewelryThumbnail from '../jewelry-thumbnail';
-import { Skeleton, Workflow, PageHeader } from '../ui/components';
+import { Feedback, ErrorState, Skeleton, Workflow, PageHeader } from '../ui/components';
 
 type Jewelry = { id: string; registration_code: string; name: string; model: string | null; stock: number; price_cents: number; workflow_stage: string; active: boolean; collection_id: string | null; collections: { name: string } | null; jewelry_intake: { acquisition_cost_cents: number; identification_image_path: string | null } | null };
 type StockItem = { id: string; kind: 'embalagem' | 'insumo'; unit_cost_cents: number; quantity_on_hand: number; acquired_quantity: number; acquired_on: string | null };
@@ -44,10 +44,12 @@ export default function PricingPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>({ ...emptyDraft });
   const [loading, setLoading] = useState(true);
+  const [loadError,setLoadError]=useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
+    setLoading(true);setLoadError(false);
     const [jewelryResult, stockResult, modelResult, pricingResult] = await Promise.all([
       db.from('products').select('id,registration_code,name,model,stock,price_cents,workflow_stage,active,collection_id,collections(name),jewelry_intake(acquisition_cost_cents,identification_image_path)').order('created_at', { ascending: false }),
       db.from('stock_items').select('id,kind,unit_cost_cents,quantity_on_hand,acquired_quantity,acquired_on'),
@@ -55,7 +57,7 @@ export default function PricingPage() {
       db.from('product_pricing').select('product_id,packaging_model_id,monthly_sales_estimate,approved_price_cents,acquisition_cost_cents,packaging_cost_cents,depreciation_cost_cents'),
     ]);
     if (jewelryResult.error || stockResult.error || modelResult.error || pricingResult.error) {
-      setMessage('Não foi possível carregar os dados de precificação. Confira sua sessão.');
+      setLoadError(true);setMessage('Não foi possível carregar os dados de precificação. Confira sua sessão.');
     } else {
       setJewelry((jewelryResult.data ?? []).map(row => ({ ...row,
         collections: Array.isArray(row.collections) ? row.collections[0] ?? null : row.collections ?? null,
@@ -135,9 +137,9 @@ export default function PricingPage() {
 
   const pending = jewelry.filter(item => item.workflow_stage === 'aguardando_precificacao');
   const priced = jewelry.filter(item => item.workflow_stage !== 'aguardando_precificacao');
-  return <main className="management-page"><p className="eyebrow">ETAPA 03 · CUSTO E LUCRO</p><PageHeader title={"Precificação"} description={"Somente joias vinculadas a uma coleção aparecem aqui. Selecione uma peça, escolha a embalagem e confira o preço. Salvar não publica a peça na loja."}/>
+  return <main className="management-page">{loadError && <ErrorState onRetry={()=>void refresh()}/>} <p className="eyebrow">ETAPA 03 · CUSTO E LUCRO</p><PageHeader title={"Precificação"} description={"Somente joias vinculadas a uma coleção aparecem aqui. Selecione uma peça, escolha a embalagem e confira o preço. Salvar não publica a peça na loja."}/>
     <div className="pricing-queue-summary"><div><strong>{pending.length}</strong><span>Aguardando preço</span></div><div><strong>{priced.length}</strong><span>Com preço definido</span></div></div>
-    {loading ? <Skeleton label="Carregando joias e custos"/> : <><div className="pricing-tables"><PricingTable title="Aguardando precificação" rows={pending} pending selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/><PricingTable title="Joias precificadas" rows={priced} pending={false} selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/></div>{jewelry.length === 0 && <p className="management-status">Nenhuma joia com coleção definida. <Link href="/admin/colecoes">Definir coleções →</Link></p>}
+    {loadError ? null : loading ? <Skeleton label="Carregando joias e custos"/> : <><div className="pricing-tables"><PricingTable title="Aguardando precificação" rows={pending} pending selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/><PricingTable title="Joias precificadas" rows={priced} pending={false} selectedId={selectedId} onSelect={select} photoUrls={photoUrls}/></div>{jewelry.length === 0 && <p className="management-status">Nenhuma joia com coleção definida. <Link href="/admin/colecoes">Definir coleções →</Link></p>}
       {selected && <section id="pricing-editor" className="management-card workflow-pricing-editor"><div className="pricing-editor-top"><JewelryThumbnail url={selected.jewelry_intake?.identification_image_path ? photoUrls[selected.jewelry_intake.identification_image_path] : undefined} name={selected.name} hasPhoto={Boolean(selected.jewelry_intake?.identification_image_path)}/><div className="jewelry-form-head"><div><p className="eyebrow">{selected.registration_code}</p><h2>{selected.name}</h2><p><span className="pricing-collection-label">Coleção:</span> <span className="pricing-collection-tag">{selected.collections?.name ?? 'Coleção não informada'}</span> <span className="pricing-model-label">· {selected.model ?? 'Modelo não informado'}</span></p></div><span className="management-badge">{selected.workflow_stage === 'aguardando_precificacao' ? 'Preço pendente' : 'Revisar preço'}</span></div></div><Workflow collection={Boolean(selected.collection_id)} priced={selected.workflow_stage!=='aguardando_precificacao'&&selected.price_cents>0} published={selected.active}/><form onSubmit={save}>
         <div className="workflow-cost-grid"><div><span>Joia · custo unitário</span><strong>{brl(selected.jewelry_intake?.acquisition_cost_cents ?? 0)}</strong></div><div><span>Insumos · depreciação mensal</span><strong>{brl(monthlyDepreciation)}</strong></div><div><span>Insumos · rateio por joia</span><strong>{depreciationPerPiece === null ? '—' : brl(depreciationPerPiece)}</strong></div></div>
         <div className="management-fields"><label className="management-wide">Modelo de embalagem<select required value={draft.modelId} onChange={event => setDraft({ ...draft, modelId: event.target.value })}><option value="">Selecione um modelo</option>{models.map(model => <option value={model.id} key={model.id}>{model.name} · {model.channel === 'local' ? 'Venda local' : 'Envio'}</option>)}</select></label>{models.length === 0 && <p className="management-wide">Cadastre primeiro um <Link href="/admin/estoque">modelo de embalagem no Estoque</Link>.</p>}<label>Estimativa de joias vendidas pela loja por mês<input required type="number" min="1" max="1000000" step="1" value={draft.monthlySales} onChange={event => setDraft({ ...draft, monthlySales: event.target.value })}/><small>Use a estimativa total da loja; o sistema divide a depreciação mensal por essa quantidade.</small></label><div className="workflow-inline-cost"><span>Embalagem por venda</span><strong>{packagingSummary ? brl(packagingSummary.costCents) : '—'}</strong><small>{packagingSummary ? `${packagingSummary.availableSets} conjunto(s) possíveis no estoque atual` : ''}</small></div></div>
@@ -145,6 +147,6 @@ export default function PricingPage() {
         {quote ? <div className="workflow-result" aria-live="polite"><div><span>Custo-base por joia</span><strong>{brl(quote.fixedCostCents)}</strong></div><div><span>Lucro desejado por venda</span><strong>{brl(quote.profitCents)}</strong></div><div><span>Preço de venda</span><strong>{brl(quote.priceCents)}</strong></div><div><span>Lucro sobre cada venda (%)</span><strong>{displayPercent(quote.estimatedMarginBps)}%</strong></div></div> : <p className="management-status" role="status">{previewError}</p>}
         {quote && <section className="erp-checklist" aria-label="Comparação de preço"><strong>Simulação antes de salvar</strong><span>Preço cadastrado: {selected.workflow_stage==='aguardando_precificacao'?'Pendente':brl(selected.price_cents)}</span><span>Preço em revisão: {brl(quote.priceCents)}</span><div className="erp-cost-bar" role="img" aria-label={`Custo ${brl(quote.fixedCostCents)}, lucro ${brl(quote.profitCents)}`}><span style={{width:`${quote.fixedCostCents/quote.priceCents*100}%`}}/><span style={{width:`${quote.profitCents/quote.priceCents*100}%`}}/></div><small>Custo-base e lucro calculados pela fórmula atual. Salve para confirmar.</small></section>}<p className="workflow-disclaimer">Preço de venda = custo-base + lucro. O padrão de 50% significa R$ 50 de lucro para cada R$ 100 de custo, resultando em R$ 150 de venda; não é 50% sobre o preço de venda. O custo-base inclui apenas joia, embalagem e rateio dos insumos. Ao salvar, o banco recalcula os custos; se algum custo mudou, confira o lucro efetivo na confirmação. Preços anteriores só mudam quando você salvar uma nova precificação.</p><button className="botao" type="submit" disabled={!quote || busy}>{busy ? 'Salvando...' : 'Salvar preço e enviar ao Catálogo'}</button>
       </form></section>}</>}
-    <p role="status" className="management-status">{message}</p>{selected && selected.workflow_stage !== 'aguardando_precificacao' && <Link className="management-outline" href="/admin/catalogo">Ver joia no Catálogo de gestão →</Link>}
+    <Feedback message={message}/>{selected && selected.workflow_stage !== 'aguardando_precificacao' && <Link className="management-outline" href="/admin/catalogo">Ver joia no Catálogo de gestão →</Link>}
   </main>;
 }
