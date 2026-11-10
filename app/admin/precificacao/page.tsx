@@ -74,7 +74,7 @@ export default function PricingPage() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  function select(item: Jewelry) {
+  const select=useCallback((item: Jewelry) => {
     setSelectedId(item.id); setMessage('');
     const previous = saved.find(record => record.product_id === item.id);
     setDraft(previous ? {
@@ -82,7 +82,8 @@ export default function PricingPage() {
       profitPercent: '', desiredProfit: '', sellingPrice: displayMoney(previous.approved_price_cents), pricingBasis: 'price',
     } : { ...emptyDraft });
     window.requestAnimationFrame(() => document.getElementById('pricing-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
+  },[saved]);
+  useEffect(()=>{const url=new URL(window.location.href);const id=url.searchParams.get('produto');const item=jewelry.find(x=>x.id===id);if(item){select(item);url.searchParams.delete('produto');window.history.replaceState(null,'',url);}},[jewelry,select]);
 
   const photoUrls = useIdentificationPhotos(db, jewelry.map(item => item.jewelry_intake?.identification_image_path));
   const selected = jewelry.find(item => item.id === selectedId);
