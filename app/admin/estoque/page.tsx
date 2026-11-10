@@ -1,4 +1,5 @@
 'use client';
+import { PageHeader } from '../ui/components';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
@@ -152,7 +153,7 @@ export default function StockPage() {
     try { unitCostPreview = packagingUnitCostCents(parseMoney(itemDraft.unitCost), Number(itemDraft.initialQuantity)); }
     catch { /* aguardando preenchimento */ }
   }
-  return <main className="management-page stock-page"><p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><h1>Estoque</h1><p className="management-intro">Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão.</p>
+  return <main className="management-page stock-page"><p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><PageHeader title={"Estoque"} description={"Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão."}/>
     <div className="erp-insights"><article className="erp-insight"><span>Embalagens cadastradas</span><strong>{items.filter(x=>x.kind==='embalagem').length}</strong><span>Tipos de embalagem</span></article><article className="erp-insight"><span>Itens com saldo zero</span><strong>{items.filter(x=>x.quantity_on_hand===0).length}</strong><span>Revisar necessidade de reposição</span></article><article className="erp-insight"><span>Modelos de embalagem</span><strong>{models.length}</strong><span>Composições disponíveis</span></article></div><div className="erp-toolbar"><label>Buscar item<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome da embalagem ou insumo"/></label></div>
     <div className="stock-tabs" role="group" aria-label="Áreas do estoque"><button type="button" aria-pressed={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" aria-pressed={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" aria-pressed={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
     <p role="status" className="management-status">{message}</p>
