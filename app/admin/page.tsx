@@ -1,5 +1,5 @@
 'use client';
-import { PageHeader } from './ui/components';
+import { PageHeader, Feedback, ErrorState } from './ui/components';
 
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -34,6 +34,7 @@ const dateTime = (value: string) => new Intl.DateTimeFormat('pt-BR', { timeZone:
 export default function ManagementHome() {
   const { db } = useManagement();
   const [products, setProducts] = useState<{ id: string; name: string; registration_code: string; stock: number; price_cents: number; workflow_stage: string }[] | null>(null);
+  const [revision,setRevision]=useState(0);
   const [loadError, setLoadError] = useState(false);
   const [sales, setSales] = useState<SalesDashboard | null>(null);
   const [salesError, setSalesError] = useState(false);
@@ -42,6 +43,7 @@ export default function ManagementHome() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    setLoadError(false);setSalesError(false);setProducts(null);setSales(null);
     let active = true;
     void db.from('products').select('id,name,registration_code,stock,price_cents,workflow_stage').order('created_at', { ascending: false }).then(({ data, error }) => {
       if (!active) return;
@@ -54,7 +56,7 @@ export default function ManagementHome() {
       else setSales(data as SalesDashboard);
     });
     return () => { active = false; };
-  }, [db]);
+  }, [db,revision]);
 
   async function setPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,14 +73,14 @@ export default function ManagementHome() {
   return <main className="management-page"><p className="eyebrow">CENTRAL DE GESTÃO</p><PageHeader title={"Visão geral"} description={"Acompanhe os indicadores da loja e acesse as etapas da operação."}/>
     <OperationInsights/><h2 className="management-subheading">Desempenho de vendas</h2>
     <section className="sales-kpis" aria-label="Indicadores de vendas"><div className="sales-kpi"><span>Pedidos pagos</span><strong>{sales ? sales.paid_orders : '—'}</strong><small>Não inclui pedidos cancelados</small></div><div className="sales-kpi"><span>Receita dos pedidos</span><strong>{sales ? brl(sales.gross_revenue_cents) : '—'}</strong><small>Inclui o frete cobrado</small></div><div className="sales-kpi"><span>Ticket médio</span><strong>{sales ? brl(ticket) : '—'}</strong><small>Receita ÷ pedidos pagos</small></div><div className="sales-kpi"><span>Aguardando pagamento</span><strong>{sales ? sales.pending_orders : '—'}</strong><small>Não entram na receita</small></div></section>
-    {salesError && <p className="management-status" role="status">Não foi possível carregar as vendas. Confira sua sessão e a atualização do banco.</p>}
+    {salesError && <ErrorState message="Não foi possível carregar as vendas." onRetry={()=>setRevision(x=>x+1)}/>}
     <div className="sales-panels"><section className="management-card sales-chart-card"><div className="sales-section-heading"><div><p className="eyebrow">DESEMPENHO</p><h2>Evolução de vendas</h2></div><span>Últimos 6 meses</span></div><p className="sales-section-note">Receita de pedidos pagos, agrupada pelo mês em que o pedido foi criado.</p>{sales ? <><div className="sales-chart" role="img" aria-label={`Receita mensal: ${sales.months.map(month => `${monthName(month.month)} ${brl(month.revenue_cents)}`).join(', ')}`}>{sales.months.map(month => <div className="sales-chart-column" key={month.month}><span className="sales-chart-value">{month.revenue_cents ? brl(month.revenue_cents) : '—'}</span><div className="sales-chart-track"><div style={{ height: `${month.revenue_cents ? Math.max(4, month.revenue_cents / maxRevenue * 100) : 0}%` }}/></div><strong>{monthName(month.month)}</strong><small>{month.orders} {month.orders === 1 ? 'pedido' : 'pedidos'}</small></div>)}</div>{sales.paid_orders === 0 && <p className="sales-empty-note">Ainda não há pedidos pagos. O gráfico será preenchido quando a loja registrar vendas.</p>}</> : <p>{salesError ? 'Não foi possível carregar a evolução de vendas.' : 'Carregando evolução...'}</p>}</section>
       <section className="management-card sales-top-card"><div className="sales-section-heading"><div><p className="eyebrow">PREFERIDAS DAS CLIENTES</p><h2>Top 5 joias</h2></div><span>Por unidades vendidas</span></div>{sales?.top_products.length ? <ol className="sales-top-list">{sales.top_products.map((item, index) => <li key={`${item.name}-${index}`}><span className="sales-top-rank">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.name}</strong><small>{brl(item.revenue_cents)} em peças</small></span><b>{item.quantity} un.</b></li>)}</ol> : <p className="sales-empty-note">{sales ? 'As joias mais compradas aparecerão após as primeiras vendas pagas.' : salesError ? 'Não foi possível carregar as joias mais vendidas.' : 'Carregando ranking...'}</p>}</section></div>
     <section className="management-card sales-orders"><div className="sales-section-heading"><div><p className="eyebrow">MOVIMENTO DA LOJA</p><h2>Pedidos recentes</h2></div><span>Últimos 5 registros</span></div>{sales?.recent_orders.length ? <div className="sales-order-list">{sales.recent_orders.map(order => <div className="sales-order-row" key={order.id}><strong>#{order.id.slice(0, 8).toUpperCase()}</strong><span>{dateTime(order.created_at)}</span><span className={`sales-order-status ${order.status}`}>{order.status.replaceAll('_', ' ')}</span><b>{brl(order.total_cents)}</b></div>)}</div> : <p className="sales-empty-note">{sales ? 'Nenhum pedido registrado no site de vendas.' : salesError ? 'Não foi possível carregar os pedidos.' : 'Carregando pedidos...'}</p>}</section>
     <h2 className="management-subheading">Operação e catálogo</h2>
-    {loadError && <p className="management-status" role="status">Não foi possível carregar o resumo. Confira sua sessão.</p>}
+    {loadError && <ErrorState onRetry={()=>setRevision(x=>x+1)}/>}
     <section className="management-metrics" aria-label="Resumo das joias"><div className="management-metric"><span>Joias cadastradas</span><strong>{products ? products.length : '—'}</strong><small>Total de fichas</small></div><div className="management-metric"><span>Aguardando preço</span><strong>{products ? products.filter(item => item.workflow_stage === 'aguardando_precificacao').length : '—'}</strong><small>Concluir na precificação</small></div><div className="management-metric"><span>Unidades em estoque</span><strong>{products ? products.reduce((sum, item) => sum + item.stock, 0) : '—'}</strong><small>Soma das quantidades cadastradas</small></div></section>
     <h2 className="management-subheading">Acesso rápido</h2><div className="management-step-grid">{steps.map(step => <Link href={step.href} className="management-step" key={step.number}><span>{step.number}</span><h2>{step.title}</h2><p>{step.description}</p><strong>Abrir seção ↗</strong></Link>)}</div>
     <section className="management-card management-recent"><div className="management-recent-header"><h2>Joias recentes</h2><Link href="/admin/joias">Ver todas ↗</Link></div>{products?.length ? <div className="management-recent-list">{products.slice(0, 5).map(item => <div className="management-recent-row" key={item.id}><strong>{item.name}</strong><small>{item.registration_code}</small><small>{item.stock} un.</small><span>{item.workflow_stage === 'aguardando_precificacao' ? 'Preço pendente' : brl(item.price_cents)}</span></div>)}</div> : <p>{products ? 'Nenhuma joia cadastrada ainda.' : loadError ? 'Não foi possível carregar as joias.' : 'Carregando joias...'}</p>}</section>
-    <details id="account-security" className="management-card management-password"><summary><strong>Segurança da conta</strong> · Alterar senha</summary><p>Se você entrou por um convite, defina aqui a senha dos próximos acessos. Ela nunca é enviada para nossa equipe.</p><form onSubmit={setPassword}><label>Nova senha<input type="password" autoComplete="new-password" minLength={12} required value={newPassword} onChange={event => setNewPassword(event.target.value)}/></label><label>Confirme a senha<input type="password" autoComplete="new-password" minLength={12} required value={confirmation} onChange={event => setConfirmation(event.target.value)}/></label><button className="botao" type="submit">Definir senha</button></form><p role="status">{message}</p></details></main>;
+    <details id="account-security" className="management-card management-password"><summary><strong>Segurança da conta</strong> · Alterar senha</summary><p>Se você entrou por um convite, defina aqui a senha dos próximos acessos. Ela nunca é enviada para nossa equipe.</p><form onSubmit={setPassword}><label>Nova senha<input type="password" autoComplete="new-password" minLength={12} required value={newPassword} onChange={event => setNewPassword(event.target.value)}/></label><label>Confirme a senha<input type="password" autoComplete="new-password" minLength={12} required value={confirmation} onChange={event => setConfirmation(event.target.value)}/></label><button className="botao" type="submit">Definir senha</button></form><Feedback message={message}/></details></main>;
 }
