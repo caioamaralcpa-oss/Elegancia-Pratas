@@ -18,7 +18,7 @@ export default function CollectionsPage() {
   const [name, setName] = useState('');
   const [filter, setFilter] = useState('sem_colecao');
   const [query, setQuery] = useState('');
-  useEffect(()=>{const q=new URLSearchParams(window.location.search).get('q');if(q){setQuery(q);setFilter('todas');}},[]);
+  useEffect(()=>{const params=new URLSearchParams(window.location.search);const q=params.get('q');if(q){setQuery(q);setFilter('todas');}const collection=params.get('colecao');if(collection)setFilter(collection);},[]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [targetId, setTargetId] = useState('');
   const [loading, setLoading] = useState(true);
