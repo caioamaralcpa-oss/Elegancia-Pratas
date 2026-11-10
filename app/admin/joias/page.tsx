@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
@@ -206,13 +207,13 @@ export default function JewelryPage() {
           <label>Quantidade disponível<input required type="number" min="0" max="1000000" step="1" value={draft.quantity} onChange={event => setDraft({ ...draft, quantity: event.target.value })}/></label>
           <label className="management-wide">Foto de identificação, privada<input key={fileInputKey} type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImage(event.target.files?.[0] ?? null)}/><small>Esta foto não aparece na loja. JPG, PNG ou WebP, até 5 MB. É necessária para concluir o cadastro.</small></label>
         </div>
-        {imageUrl && <img className="jewelry-private-photo" src={imageUrl} alt={`Foto de identificação de ${current?.name ?? 'joia'}`}/>}
+        {imageUrl && <Image unoptimized width={140} height={140} className="jewelry-private-photo" src={imageUrl} alt={`Foto de identificação de ${current?.name ?? 'joia'}`}/>}
         <div className="jewelry-cost-summary"><span>Custo por unidade <strong>{unitCost === null ? '—' : brl(unitCost)}</strong></span><span>Custo total do lote <strong>{totalCost === null ? '—' : brl(totalCost)}</strong></span></div>
         {!current?.active && <p className="jewelry-next-step">{current?.collection_id ? <>Coleção definida. Se o custo mudou, revise a <Link href="/admin/precificacao">Precificação</Link>.</> : <>Próxima etapa: <Link href="/admin/colecoes">definir a coleção</Link>. A joia só aparecerá na Precificação depois disso.</>}</p>}
         <button className="botao" type="submit" disabled={saving}>{saving ? 'Salvando...' : current ? 'Salvar alterações' : 'Salvar joia'}</button>
       </form>
       <p role="status" className="management-status">{message}</p>
-      {lastSaved && <div className="jewelry-save-confirmation" role="status"><img src={lastSaved.photoUrl} alt={`Foto de identificação de ${lastSaved.name}`}/><div><strong>Cadastro confirmado · {lastSaved.code}</strong><p>{lastSaved.name} · {lastSaved.model} · {genderLabels[lastSaved.gender]}</p><p>Quantidade: {lastSaved.quantity} · Custo unitário: {brl(lastSaved.unitCostCents)}</p><p>Medidas: {lastSaved.measurements || 'Não informadas'}</p><p>Descrição: {lastSaved.description || 'Não informada'}</p><small>Foto de identificação vinculada e dados conferidos no banco. O formulário já está pronto para outra joia.</small></div></div>}
+      {lastSaved && <div className="jewelry-save-confirmation" role="status"><Image unoptimized width={96} height={96} src={lastSaved.photoUrl} alt={`Foto de identificação de ${lastSaved.name}`}/><div><strong>Cadastro confirmado · {lastSaved.code}</strong><p>{lastSaved.name} · {lastSaved.model} · {genderLabels[lastSaved.gender]}</p><p>Quantidade: {lastSaved.quantity} · Custo unitário: {brl(lastSaved.unitCostCents)}</p><p>Medidas: {lastSaved.measurements || 'Não informadas'}</p><p>Descrição: {lastSaved.description || 'Não informada'}</p><small>Foto de identificação vinculada e dados conferidos no banco. O formulário já está pronto para outra joia.</small></div></div>}
       {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/colecoes">Definir coleções</Link></div>}
     </section>
     <section className="management-card jewelry-missing-photos"><h2>Joias sem foto de identificação <small>{missingPhotos.length}</small></h2>{loading ? <p>Verificando fotos...</p> : missingPhotos.length === 0 ? <p>Todas as joias cadastradas têm foto de identificação.</p> : <ul>{missingPhotos.map(item => <li key={item.id}><span><strong>{item.name}</strong><small>{item.registration_code}</small></span><button type="button" className="management-outline" onClick={() => void select(item)}>Adicionar foto</button></li>)}</ul>}</section>
