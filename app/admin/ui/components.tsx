@@ -22,5 +22,5 @@ export function Feedback({message}:{message:string}){
  const [visible,setVisible]=useState(false);
  const success=Boolean(message)&&!/(não|falh|erro|mas |confira|informe|selecione|aguarde|enviando)/i.test(message)&&/(salv|registrad|confirmad|publicad|vinculad|movid|retirada|excluíd|definida)/i.test(message);
  useEffect(()=>{setVisible(true);const id=setTimeout(()=>setVisible(false),7000);return()=>clearTimeout(id)},[message]);
- return <><p role="status" className="management-status">{message}</p>{success&&visible&&<aside className="erp-toast" aria-hidden="true"><strong>Operação concluída</strong><p>{message}</p><button type="button" onClick={()=>setVisible(false)}>Fechar notificação</button></aside>}</>;
+ return <><p role="status" className="management-status">{message}</p>{success&&visible&&<aside className="erp-toast" aria-label="Notificação de sucesso"><strong>Operação concluída</strong><p>{message}</p><button type="button" onClick={()=>setVisible(false)}>Fechar notificação</button></aside>}</>;
 }
