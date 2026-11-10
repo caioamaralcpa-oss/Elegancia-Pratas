@@ -1,0 +1,73 @@
+{
+  "sourceCommit": "0d3e467a1f22c77715f9625b1479b934123648f5",
+  "lighthouse": "13.6.0",
+  "method": "Production build; mobile defaults; 60 synthetic products; isolated transport; real auth/database not measured; one run per route; no parallel builds.",
+  "results": [
+    {
+      "route": "/admin",
+      "at": "2026-11-10T16:12:00.485Z",
+      "P": 87,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 953,
+      "LCP_ms": 3060,
+      "TBT_ms": 323,
+      "CLS": 0
+    },
+    {
+      "route": "/admin/joias",
+      "at": "2026-11-10T16:12:08.571Z",
+      "P": 95,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 937,
+      "LCP_ms": 1919,
+      "TBT_ms": 256,
+      "CLS": 0
+    },
+    {
+      "route": "/admin/colecoes",
+      "at": "2026-11-10T16:12:16.666Z",
+      "P": 98,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 939,
+      "LCP_ms": 939,
+      "TBT_ms": 174,
+      "CLS": 0
+    },
+    {
+      "route": "/admin/estoque",
+      "at": "2026-11-10T16:12:23.899Z",
+      "P": 97,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 947,
+      "LCP_ms": 947,
+      "TBT_ms": 188,
+      "CLS": 0
+    },
+    {
+      "route": "/admin/precificacao",
+      "at": "2026-11-10T16:12:30.994Z",
+      "P": 92,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 940,
+      "LCP_ms": 940,
+      "TBT_ms": 352,
+      "CLS": 0
+    },
+    {
+      "route": "/admin/catalogo",
+      "at": "2026-11-10T16:12:38.357Z",
+      "P": 90,
+      "A": 100,
+      "BP": 100,
+      "FCP_ms": 937,
+      "LCP_ms": 937,
+      "TBT_ms": 405,
+      "CLS": 0
+    }
+  ]
+}
