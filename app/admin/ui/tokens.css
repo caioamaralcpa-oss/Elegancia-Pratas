@@ -51,3 +51,12 @@
 @media(max-width:1200px){.erp-quick-actions{display:none}.erp-search{min-width:180px}}
 @media(max-width:900px){.erp-collapsed{grid-template-columns:1fr}.erp-collapsed .management-sidebar{width:100%}.erp-collapsed .management-brand-name,.erp-collapsed .management-sidebar nav a>span,.erp-collapsed .erp-nav-group{display:initial}.erp-collapse{display:none!important}.management-topbar{flex-wrap:wrap}.erp-search{min-width:0;flex:1}.erp-search kbd{display:none}.erp-insights{grid-template-columns:1fr 1fr}.erp-page-header{flex-wrap:wrap}}
 @media(max-width:550px){.erp-insights{grid-template-columns:1fr}.management-topbar-account{max-width:130px;overflow:hidden}.management-topbar>div:first-child{display:none}}
+
+.erp-cost-bar{display:flex;height:18px;border-radius:6px;overflow:hidden;background:var(--erp-canvas);border:1px solid var(--erp-border)}
+.erp-cost-bar>span:first-child{background:var(--erp-brand)}.erp-cost-bar>span:last-child{background:var(--erp-focus)}
+#pricing-editor>form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+#pricing-editor>form>.workflow-cost-grid,#pricing-editor>form>.management-fields{grid-column:1}
+#pricing-editor>form>.workflow-profit-inputs{grid-column:2;grid-row:1 / span 2;display:grid;grid-template-columns:1fr;align-content:start;margin:0;padding:24px;background:var(--erp-canvas);border:1px solid var(--erp-border);border-radius:var(--erp-radius)}
+#pricing-editor>form>:is(.workflow-result,.erp-checklist,.workflow-disclaimer,.management-status){grid-column:1/-1}
+.management-shell .erp-card img{max-width:100%}
+@media(max-width:1000px){#pricing-editor>form{grid-template-columns:1fr}#pricing-editor>form>.workflow-profit-inputs{grid-column:1;grid-row:auto}}
