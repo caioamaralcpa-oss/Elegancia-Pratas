@@ -84,3 +84,6 @@
 .management-shell .sales-kpi small,.management-shell .stock-footnote{color:var(--erp-muted)}
 .stock-page:has(>.erp-load-error)>.erp-insights,.management-page:has(>.erp-load-error)>.pricing-queue-summary{display:none}
 .erp-batch-actions{padding:16px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.8rem}.erp-batch-actions p{width:100%;margin:0}
+
+.management-shell .jewelry-table-scroll{overflow-x:auto;max-width:100%}.jewelry-page .jewelry-table{table-layout:auto}.jewelry-page .jewelry-table th:first-child{width:44px}.jewelry-page .jewelry-table th:nth-child(2){width:24%}
+@media(max-width:1100px){.management-shell .jewelry-table{min-width:0;max-width:100%}.management-shell .jewelry-table td::before{content:attr(data-label)!important}.management-shell .collection-assignment-table td:first-child{width:100%}.management-shell .jewelry-table tr{box-sizing:border-box}}
