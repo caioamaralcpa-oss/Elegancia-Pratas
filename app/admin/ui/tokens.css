@@ -87,3 +87,8 @@
 
 .management-shell .jewelry-table-scroll{overflow-x:auto;max-width:100%}.jewelry-page .jewelry-table{table-layout:auto}.jewelry-page .jewelry-table th:first-child{width:44px}.jewelry-page .jewelry-table th:nth-child(2){width:24%}
 @media(max-width:1100px){.management-shell .jewelry-table{min-width:0;max-width:100%}.management-shell .jewelry-table td::before{content:attr(data-label)!important}.management-shell .collection-assignment-table td:first-child{width:100%}.management-shell .jewelry-table tr{box-sizing:border-box}}
+
+.management-topbar .erp-quick-actions{display:flex}.erp-quick-actions a{display:inline-flex;align-items:center;min-height:44px;padding:8px;box-sizing:border-box}
+.erp-operation-placeholder{min-height:1200px}.erp-operation-placeholder .erp-insight{min-height:158px}.erp-operation-placeholder .management-card{min-height:280px}
+.jewelry-missing-photos>summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:8px}.jewelry-missing-photos>summary::before{content:'▸'}.jewelry-missing-photos[open]>summary::before{content:'▾'}
+@media(max-width:1200px){.management-topbar .erp-quick-actions{display:none}}
