@@ -54,7 +54,7 @@ export default function CatalogManagementPage() {
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
-    setLoading(true);setLoadError(false);
+    setLoading(true);setLoadError(false);setMessage('');
     const { data, error } = await db.from('products')
       .select('id,registration_code,name,description,measurements,model,price_cents,active,collection_id,collections(name),commercial_image_urls,weight_grams,width_cm,height_cm,length_cm,jewelry_intake(product_id)')
       .in('workflow_stage', ['aguardando_catalogo', 'pronto']).gt('price_cents', 0)
