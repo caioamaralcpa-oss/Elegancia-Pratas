@@ -60,3 +60,6 @@
 #pricing-editor>form>:is(.workflow-result,.erp-checklist,.workflow-disclaimer,.management-status){grid-column:1/-1}
 .management-shell .erp-card img{max-width:100%}
 @media(max-width:1000px){#pricing-editor>form{grid-template-columns:1fr}#pricing-editor>form>.workflow-profit-inputs{grid-column:1;grid-row:auto}}
+
+.erp-user-menu{position:relative}.erp-user-menu summary{cursor:pointer;list-style:none}.erp-user-menu>div{position:absolute;right:0;top:100%;z-index:40;min-width:200px;display:grid;padding:8px;border:1px solid var(--erp-border);border-radius:var(--erp-radius);background:var(--erp-surface);box-shadow:var(--erp-shadow)}.erp-user-menu>div a{padding:12px;font-size:.8rem}.erp-alert-link{font-size:.75rem;color:var(--erp-brand)}
+@media(max-width:1100px){.erp-alert-link{display:none}}
