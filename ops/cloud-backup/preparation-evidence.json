@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-10",
+  "status": "prepared_waiting_for_credentials",
+  "realDatabaseBackup": false,
+  "realStorageBackup": false,
+  "realBackupIntegrityVerified": false,
+  "source": {
+    "project": "sltohhqejguauhanjhfj",
+    "plan": "free",
+    "inventory": [
+      {
+        "bucket": "jewelry-identification",
+        "public": false,
+        "objects": 65,
+        "bytes": 2955876
+      },
+      {
+        "bucket": "product-images",
+        "public": true,
+        "objects": 1,
+        "bytes": 69740
+      }
+    ]
+  },
+  "destination": {
+    "project": "elegancia-backup-privado",
+    "projectId": "prj_vC695Zpqu6c5Qe6vInSCKZ9OItdL",
+    "storeId": "store_yroVHhRBhJB7TcEo",
+    "access": "private",
+    "size": 0,
+    "count": 0,
+    "authentication": "Vercel Authentication, all deployments"
+  },
+  "setupCheck": {
+    "deployment": "dpl_5EDYNsAph8D37z5dp3QmdJ4EVdoY",
+    "state": "READY",
+    "privateAccessVerified": true,
+    "backupDone": false,
+    "syntheticProbeRemoved": true
+  },
+  "workerTests": {
+    "passed": 2,
+    "failed": 0,
+    "scope": "Isolated PostgreSQL 17.11 and synthetic objects; includes actual fixture restore, numeric checks and corrupt readback rejection"
+  },
+  "npmAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "sourceCodeCommit": "7bbffe895c08d61da456d2f4d15018b304b80536",
+  "officialProduction": {
+    "deployment": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
+    "commit": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+    "state": "READY",
+    "changed": false
+  },
+  "requiredSecrets": [
+    "BACKUP_DATABASE_URL",
+    "BACKUP_STORAGE_SERVICE_KEY"
+  ],
+  "sourceCredentialsStored": false
+}
