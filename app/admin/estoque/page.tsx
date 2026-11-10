@@ -42,7 +42,7 @@ export default function StockPage() {
   const [modelDraft, setModelDraft] = useState<ModelDraft>({ name: '', channel: 'local', quantities: {} });
 
   const refresh = useCallback(async () => {
-    setLoading(true);setLoadError(false);
+    setLoading(true);setLoadError(false);setMessage('');
     const [stockResult, movementResult, modelResult] = await Promise.all([
       db.from('stock_items').select('id,kind,name,unit_cost_cents,purchase_total_cents,quantity_on_hand,initial_quantity,acquired_quantity,acquired_on').order('created_at', { ascending: false }),
       db.from('stock_movements').select('id,item_id,delta,balance_after,reason,created_at').order('created_at', { ascending: false }).limit(30),
