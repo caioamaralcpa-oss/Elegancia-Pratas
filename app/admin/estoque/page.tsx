@@ -21,6 +21,7 @@ function parseMoney(value: string) {
 
 export default function StockPage() {
   const { db } = useManagement();
+  const [query,setQuery]=useState('');
   const [tab, setTab] = useState<Kind | 'modelos'>('embalagem');
   const [items, setItems] = useState<StockItem[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
@@ -143,7 +144,7 @@ export default function StockPage() {
     finally { setBusy(false); }
   }
 
-  const visibleItems = items.filter(item => item.kind === tab);
+  const visibleItems = items.filter(item => item.kind === tab && item.name.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
   const visibleMovements = movements.filter(movement => items.some(item => item.id === movement.item_id && item.kind === tab)).slice(0, 15);
   const adjustedItem = items.find(item => item.id === adjustingId);
   let unitCostPreview: number | null = null;
@@ -152,6 +153,7 @@ export default function StockPage() {
     catch { /* aguardando preenchimento */ }
   }
   return <main className="management-page stock-page"><p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><h1>Estoque</h1><p className="management-intro">Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão.</p>
+    <div className="erp-insights"><article className="erp-insight"><span>Embalagens cadastradas</span><strong>{items.filter(x=>x.kind==='embalagem').length}</strong><span>Tipos de embalagem</span></article><article className="erp-insight"><span>Itens com saldo zero</span><strong>{items.filter(x=>x.quantity_on_hand===0).length}</strong><span>Revisar necessidade de reposição</span></article><article className="erp-insight"><span>Modelos de embalagem</span><strong>{models.length}</strong><span>Composições disponíveis</span></article></div><div className="erp-toolbar"><label>Buscar item<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome da embalagem ou insumo"/></label></div>
     <div className="stock-tabs" role="group" aria-label="Áreas do estoque"><button type="button" aria-pressed={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" aria-pressed={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" aria-pressed={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
     <p role="status" className="management-status">{message}</p>
     {loading ? <p>Carregando estoque...</p> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <p>Nenhum modelo cadastrado.</p> : <div className="stock-records">{models.map(model => {
