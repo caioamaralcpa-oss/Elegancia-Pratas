@@ -1,6 +1,6 @@
 # Fase 0 — preparação de segurança do PR 12
 
-**Situação:** verificações técnicas concluídas; aguardando os backups do usuário. Nenhum merge, deploy de produção, migração, alteração de ambiente ou gravação no banco/Storage foi realizado nesta fase.
+**Situação:** verificações técnicas concluídas; aguardando a execução e verificação dos backups. Nenhum merge, deploy de produção, migração, alteração de ambiente ou gravação no banco/Storage foi realizado nesta fase.
 
 O usuário autorizou a execução da Fase 0 e informou nesta conversa que **ainda precisa fazer os backups**. O item 5 da Fase 0 do documento de trabalho exige aguardar essa confirmação antes do merge.
 
@@ -47,7 +47,7 @@ Evidências: [JSON da preparação](quality/phase0-preflight.json).
 
 [Plano de rollback de uma página](PLANO-ROLLBACK-PR12.md): retorno imediato na Vercel, reversão do commit de merge no GitHub e verificação por leitura.
 
-## Checklist de backup — a executar pelo usuário antes do merge
+## Checklist de backup — a concluir antes do merge
 
 Manter as cópias em armazenamento seguro na nuvem, separado do projeto de produção, conforme a preferência de não guardar o sistema ou os dados nesta máquina. Não colocar backups, fotos privadas ou credenciais no repositório público.
 
@@ -69,3 +69,14 @@ O Supabase esclarece que o backup do banco **não inclui os objetos do Storage**
 Para revisar esta fase: abrir o PR e comparar os arquivos com a base; conferir o JSON das quatro execuções; abrir o deployment preservado no painel Vercel e consultar o plano de retorno. Não usar botões de salvar, publicar, ajustar saldo ou arrastar coleções durante a revisão.
 
 **Portão mantido fechado para produção enquanto os backups estiverem pendentes.** Não é necessário repetir a aprovação já dada para executar estes preparativos.
+
+
+## Execução dos backups delegada ao assistente
+
+O usuário solicitou que o assistente execute os três passos de backup e informou que a conexão/senha está salva no WhatsApp. Foram confirmados o projeto Supabase EleganciaPratas e o inventário real: 65 objetos privados em jewelry-identification (2955876 bytes) e 1 público em product-images (69740 bytes). Não houve exportação dos dados reais.
+
+Foi preparado o projeto Vercel separado **elegancia-backup-privado**, com Blob privado próprio, sem alterar configurações da loja. A rotina passou em dois testes de exportação/restauração sintética e proteção de integridade; auditoria de dependências final com zero vulnerabilidades. Falta cadastrar as credenciais de exportação no ambiente seguro do projeto separado; a chave sensível da loja não é revelada pelos conectores atuais e não há WhatsApp conectado nesta sessão.
+
+[Rotina, evidências e instruções](https://github.com/caioamaralcpa-oss/Elegancia-Pratas/blob/ops/backup-seguro/ops/cloud-backup/README.md) · [Cadastro seguro no projeto de backup](https://vercel.com/99caio/elegancia-backup-privado/settings/environment-variables).
+
+**Os backups de banco e Storage continuam pendentes. O merge não está liberado.**
