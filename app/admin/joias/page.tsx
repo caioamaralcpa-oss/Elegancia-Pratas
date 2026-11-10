@@ -6,6 +6,7 @@ import { brl } from '@/lib/products';
 import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
 import JewelryThumbnail from '../jewelry-thumbnail';
+import { Workflow } from '../ui/components';
 
 type Gender = 'masculina' | 'feminina' | 'unissex';
 type Jewelry = {
@@ -35,6 +36,10 @@ export default function JewelryPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [statusFilter,setStatusFilter] = useState('todas');
+  const [sort,setSort] = useState('recentes');
+  const [view,setView] = useState('tabela');
+  useEffect(()=>{const q=new URLSearchParams(window.location.search).get('q');if(q)setQuery(q);},[]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>({ ...emptyDraft });
   const [image, setImage] = useState<File | null>(null);
@@ -171,7 +176,7 @@ export default function JewelryPage() {
   const photoUrls = useIdentificationPhotos(db, items.map(item => item.jewelry_intake?.identification_image_path));
   const missingPhotos = items.filter(item => item.jewelry_intake && !item.jewelry_intake.identification_image_path);
   const collectionName = (id: string | null) => collections.find(collection => collection.id === id)?.name ?? 'Sem coleção';
-  const visible = items.filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
+  const visible = items.filter(item => statusFilter === 'todas' || (statusFilter === 'publicadas' ? item.active : statusFilter === 'sem_colecao' ? !item.collection_id : item.workflow_stage === 'aguardando_precificacao')).sort((a,b)=>sort === 'nome' ? a.name.localeCompare(b.name,'pt-BR') : sort === 'quantidade' ? b.stock-a.stock : 0).filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
   let unitCost: number | null = null;
   let totalCost: number | null = null;
   try {
@@ -186,7 +191,7 @@ export default function JewelryPage() {
 
     <section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
       {current?.active && <p className="jewelry-next-step">Esta joia está publicada. Alterações nos dados e na quantidade são salvas normalmente. <strong>Se o custo unitário mudar, ela será retirada da loja para nova precificação.</strong> As fotos comerciais continuam na página <Link href="/admin/catalogo">Catálogo</Link>; a coleção é alterada em <Link href="/admin/colecoes">Coleções</Link>.</p>}
-      <form onSubmit={save}>
+      {current && <Workflow collection={Boolean(current.collection_id)} priced={current.workflow_stage !== 'aguardando_precificacao' && current.price_cents > 0} published={current.active}/>}<form onSubmit={save}>
         <div className="management-fields">
           <label>Nome comercial<input required maxLength={120} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Ex.: Colar Aurora"/></label>
           <label>Modelo<input required maxLength={80} list="jewelry-models" value={draft.model} onChange={event => setDraft({ ...draft, model: event.target.value })} placeholder="Ex.: Cordão"/><datalist id="jewelry-models">{['Cordão', 'Brinco', 'Pulseira', 'Choker', 'Bracelete', 'Anel', 'Pingente'].map(value => <option value={value} key={value}/>)}</datalist></label>
@@ -209,12 +214,14 @@ export default function JewelryPage() {
     <section className="management-card jewelry-missing-photos"><h2>Joias sem foto de identificação <small>{missingPhotos.length}</small></h2>{loading ? <p>Verificando fotos...</p> : missingPhotos.length === 0 ? <p>Todas as joias cadastradas têm foto de identificação.</p> : <ul>{missingPhotos.map(item => <li key={item.id}><span><strong>{item.name}</strong><small>{item.registration_code}</small></span><button type="button" className="management-outline" onClick={() => void select(item)}>Adicionar foto</button></li>)}</ul>}</section>
     <section className="management-card jewelry-table-card" aria-labelledby="registered-jewelry-title">
       <div className="jewelry-table-head"><div><h2 id="registered-jewelry-title">Joias cadastradas <small>{items.length}</small></h2><p>Custos e preços desta tabela são visíveis somente na gestão.</p></div><label>Buscar joia<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, código ou coleção"/></label></div>
-      {loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll" role="region" aria-label="Joias cadastradas para gestão" tabIndex={0}><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
+      <div className="erp-toolbar"><label>Situação<select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="todas">Todas</option><option value="publicadas">Publicadas</option><option value="sem_colecao">Sem coleção</option><option value="sem_preco">Sem preço</option></select></label><label>Ordenar<select value={sort} onChange={e=>setSort(e.target.value)}><option value="recentes">Mais recentes</option><option value="nome">Nome</option><option value="quantidade">Maior quantidade</option></select></label><div role="group" aria-label="Visualização das joias"><button type="button" className="management-outline" aria-pressed={view==='tabela'} onClick={()=>setView('tabela')}>Tabela</button><button type="button" className="management-outline" aria-pressed={view==='grade'} onClick={()=>setView('grade')}>Grade</button></div></div>
+      {view==='grade' && <div className="erp-cards">{visible.map(item=><article className="erp-card" key={item.id}><JewelryThumbnail url={photoUrls[item.jewelry_intake?.identification_image_path??'']} name={item.name} hasPhoto={Boolean(item.jewelry_intake?.identification_image_path)}/><h3>{item.name}</h3><p>{item.registration_code} · {collectionName(item.collection_id)}</p><Workflow collection={Boolean(item.collection_id)} priced={item.workflow_stage!=='aguardando_precificacao'&&item.price_cents>0} published={item.active}/><p>{item.stock} unidade(s)</p><button type="button" className="management-outline" onClick={()=>void select(item)}>Editar</button></article>)}</div>}
+      <div hidden={view!=='tabela'}>{loading ? <p>Carregando joias...</p> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll" role="region" aria-label="Joias cadastradas para gestão" tabIndex={0}><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
         const cost = item.jewelry_intake?.acquisition_cost_cents;
         const path = item.jewelry_intake?.identification_image_path;
         return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><div className="jewelry-table-actions"><button type="button" onClick={() => void select(item)}>Editar</button><button type="button" className="jewelry-delete-button" onClick={() => { setDeleteCandidate(item); setDeleteCode(''); }}>Excluir</button></div></td></tr>;
       })}</tbody></table></div>}
-    </section>
+    </div></section>
     {deleteCandidate && <div className="jewelry-delete-backdrop"><div className="jewelry-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="jewelry-delete-title"><h2 id="jewelry-delete-title">Excluir joia?</h2><p><strong>{deleteCandidate.name}</strong> · {deleteCandidate.registration_code}</p><p>Esta ação remove o cadastro, a precificação e o vínculo com a coleção. {deleteCandidate.active ? 'A peça publicada sairá da loja imediatamente. ' : ''}Joias com histórico de pedidos não podem ser excluídas.</p><form onSubmit={deleteJewelry}><label>Digite <strong>{deleteCandidate.registration_code}</strong> para confirmar<input autoFocus autoComplete="off" value={deleteCode} onChange={event => setDeleteCode(event.target.value)} placeholder={deleteCandidate.registration_code}/></label><div className="jewelry-delete-actions"><button type="button" className="management-outline" disabled={deleting} onClick={() => { setDeleteCandidate(null); setDeleteCode(''); }}>Cancelar</button><button type="submit" className="jewelry-delete-confirm" disabled={deleting || deleteCode.trim() !== deleteCandidate.registration_code}>{deleting ? 'Excluindo...' : 'Excluir definitivamente'}</button></div></form></div></div>}
   </main>;
 }
