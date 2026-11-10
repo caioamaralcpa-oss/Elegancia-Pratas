@@ -1,7 +1,8 @@
 # Reestruturação da experiência de gestão
 
 Base preservada: `c771eeaa1e35cd7388c55fc7bac49a20659b458a`.
-Implementação visual verificada: `0d3e467a1f22c77715f9625b1479b934123648f5`.
+Rotas principais medidas: `0d3e467a1f22c77715f9625b1479b934123648f5`.
+Correção final de contraste em Integrações: `66535f77b2689de89372e4fdc33fb99713e94485` (restrita a essa rota).
 Data da avaliação: 10/11/2026. Trabalho realizado no GitHub e em ambiente temporário da Vercel, sem cópia do projeto na máquina do usuário.
 
 ## Entrega
@@ -48,7 +49,7 @@ Preço potencial e lucro potencial não representam vendas, lucro realizado ou r
 - `npm test`: 28 aprovados, zero falhas. Quatro novos testes cobrem agregados em centavos, margem aprovada, ausência/desatualização de snapshot, prejuízo e preferências.
 - `npm run lint`: zero erros. Permanecem quatro avisos preexistentes de imagens no site público, fora do painel.
 - `npm run build`: aprovado; prévia da Vercel também em estado READY.
-- Playwright e axe: seis páginas × três larguras (1440, 768 e 390 px), mais drawer nas três larguras: 21 verificações, zero violações automatizadas WCAG A/AA detectadas e nenhum transbordamento horizontal da página.
+- Playwright e axe: nove páginas (incluindo Integrações, frete e acesso) × três larguras (1440, 768 e 390 px), mais drawer nas três larguras: 30 verificações, zero violações automatizadas WCAG A/AA detectadas e nenhum transbordamento horizontal da página.
 - Preferências após recarregar, limpar filtros, abrir drawer, preencher sem salvar, Escape e Ctrl+K verificados. Nenhum erro de execução capturado nesses percursos.
 - Nenhuma escrita de teste executada em produção.
 
@@ -90,7 +91,7 @@ Na primeira rodada a Visão Geral marcou 79 e Joias 83, com CLS 0,345 e 0,293. A
 
 ## Como validar na prévia sem gravar em produção
 
-Prévia verificada desta implementação: [abrir painel](https://eleganciapratas-flnokk8p4-99caio.vercel.app/admin).
+Prévia verificada desta implementação: [abrir painel](https://eleganciapratas-ptcls98cy-99caio.vercel.app/admin).
 Revisão dos commits: [PR 12](https://github.com/caioamaralcpa-oss/Elegancia-Pratas/pull/12).
 
 A prévia mantém a autenticação normal e pode compartilhar as configurações do banco de produção. Ser uma prévia não torna os botões de gravação inofensivos.
