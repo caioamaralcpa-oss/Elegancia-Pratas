@@ -21,6 +21,7 @@ export default function CollectionsPage() {
   useEffect(()=>{const params=new URLSearchParams(window.location.search);const q=params.get('q');if(q){setQuery(q);setFilter('todas');}const collection=params.get('colecao');if(collection)setFilter(collection);},[]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [targetId, setTargetId] = useState('');
+  useEffect(()=>{if(!jewelry.length)return;const url=new URL(window.location.href);const ids=url.searchParams.get('selecao');if(ids){setSelectedIds([...new Set(ids.split(','))].filter(id=>jewelry.some(x=>x.id===id)).slice(0,500));setFilter('todas');url.searchParams.delete('selecao');window.history.replaceState(null,'',url);}},[jewelry]);
   const [loading, setLoading] = useState(true);
   const [loadError,setLoadError]=useState(false);
   const [busy, setBusy] = useState(false);
