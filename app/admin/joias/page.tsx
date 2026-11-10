@@ -6,7 +6,7 @@ import { brl } from '@/lib/products';
 import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
 import JewelryThumbnail from '../jewelry-thumbnail';
-import { Workflow } from '../ui/components';
+import { Workflow, PageHeader } from '../ui/components';
 
 type Gender = 'masculina' | 'feminina' | 'unissex';
 type Jewelry = {
@@ -191,7 +191,7 @@ export default function JewelryPage() {
 
   return <main className="management-page jewelry-page">
     <p className="eyebrow">ETAPA 01 · REGISTRO</p>
-    <div className="management-title-row"><div><h1>Joias</h1><p className="management-intro">Cadastre todas as peças aqui. Depois, distribua cada joia em uma coleção e só então defina o preço. Salvar não publica a joia.</p></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
+    <div className="management-title-row"><div><PageHeader title={"Joias"} description={"Cadastre todas as peças aqui. Depois, distribua cada joia em uma coleção e só então defina o preço. Salvar não publica a joia."}/></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
 
     <section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
       {current?.active && <p className="jewelry-next-step">Esta joia está publicada. Alterações nos dados e na quantidade são salvas normalmente. <strong>Se o custo unitário mudar, ela será retirada da loja para nova precificação.</strong> As fotos comerciais continuam na página <Link href="/admin/catalogo">Catálogo</Link>; a coleção é alterada em <Link href="/admin/colecoes">Coleções</Link>.</p>}
