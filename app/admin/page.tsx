@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
 import { useManagement } from './layout';
+import OperationInsights from './operation-insights';
 
 const steps = [
   { href: '/admin/joias', number: '01', title: 'Joias', description: 'Cadastre peças, custos e quantidades.' },
@@ -67,7 +68,7 @@ export default function ManagementHome() {
   const ticket = sales && sales.paid_orders > 0 ? Math.round(sales.gross_revenue_cents / sales.paid_orders) : 0;
 
   return <main className="management-page"><p className="eyebrow">CENTRAL DE GESTÃO</p><h1>Visão geral</h1><p className="management-intro">Acompanhe os indicadores da loja e acesse as etapas da operação.</p>
-    <h2 className="management-subheading">Desempenho de vendas</h2>
+    <OperationInsights/><h2 className="management-subheading">Desempenho de vendas</h2>
     <section className="sales-kpis" aria-label="Indicadores de vendas"><div className="sales-kpi"><span>Pedidos pagos</span><strong>{sales ? sales.paid_orders : '—'}</strong><small>Não inclui pedidos cancelados</small></div><div className="sales-kpi"><span>Receita dos pedidos</span><strong>{sales ? brl(sales.gross_revenue_cents) : '—'}</strong><small>Inclui o frete cobrado</small></div><div className="sales-kpi"><span>Ticket médio</span><strong>{sales ? brl(ticket) : '—'}</strong><small>Receita ÷ pedidos pagos</small></div><div className="sales-kpi"><span>Aguardando pagamento</span><strong>{sales ? sales.pending_orders : '—'}</strong><small>Não entram na receita</small></div></section>
     {salesError && <p className="management-status" role="status">Não foi possível carregar as vendas. Confira sua sessão e a atualização do banco.</p>}
     <div className="sales-panels"><section className="management-card sales-chart-card"><div className="sales-section-heading"><div><p className="eyebrow">DESEMPENHO</p><h2>Evolução de vendas</h2></div><span>Últimos 6 meses</span></div><p className="sales-section-note">Receita de pedidos pagos, agrupada pelo mês em que o pedido foi criado.</p>{sales ? <><div className="sales-chart" role="img" aria-label={`Receita mensal: ${sales.months.map(month => `${monthName(month.month)} ${brl(month.revenue_cents)}`).join(', ')}`}>{sales.months.map(month => <div className="sales-chart-column" key={month.month}><span className="sales-chart-value">{month.revenue_cents ? brl(month.revenue_cents) : '—'}</span><div className="sales-chart-track"><div style={{ height: `${month.revenue_cents ? Math.max(4, month.revenue_cents / maxRevenue * 100) : 0}%` }}/></div><strong>{monthName(month.month)}</strong><small>{month.orders} {month.orders === 1 ? 'pedido' : 'pedidos'}</small></div>)}</div>{sales.paid_orders === 0 && <p className="sales-empty-note">Ainda não há pedidos pagos. O gráfico será preenchido quando a loja registrar vendas.</p>}</> : <p>{salesError ? 'Não foi possível carregar a evolução de vendas.' : 'Carregando evolução...'}</p>}</section>
