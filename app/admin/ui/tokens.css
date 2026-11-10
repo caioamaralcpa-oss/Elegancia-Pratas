@@ -80,3 +80,7 @@
 .erp-column-config{border:1px solid var(--erp-border);padding:12px;border-radius:8px}.erp-column-config>div{display:flex;align-items:center;gap:8px}.erp-column-config>div label{margin:0;min-width:160px}.erp-column-config button{padding:8px;border:1px solid var(--erp-border);background:var(--erp-surface);border-radius:6px;color:var(--erp-brand)}
 .management-shell .erp-density-compact .jewelry-table :is(th,td){padding:8px 12px}
 @media(max-width:900px){.erp-report-charts{grid-template-columns:1fr}.erp-drawer{padding:20px}.erp-toast{right:16px;bottom:16px}}
+
+.management-shell .sales-kpi small,.management-shell .stock-footnote{color:var(--erp-muted)}
+.management-shell:has(.erp-load-error) .erp-insights,.management-shell:has(.erp-load-error) .pricing-queue-summary{display:none}
+.erp-batch-actions{padding:16px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.8rem}.erp-batch-actions p{width:100%;margin:0}
