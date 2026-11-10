@@ -17,7 +17,7 @@ export function Modal({ open, onClose, title, children, variant='modal' }: { ope
   return <dialog ref={ref} className={variant==='drawer'?'erp-dialog erp-drawer':'erp-dialog'} aria-label={title} onCancel={event=>{event.preventDefault();onClose();}} onClose={onClose}><div className="erp-dialog-header"><h2>{title}</h2><button type="button" className="management-outline" onClick={onClose}>Fechar</button></div>{children}</dialog>;
 }
 
-export function ErrorState({onRetry,message='Não foi possível carregar os dados.'}:{onRetry:()=>void;message?:string}){return <div className="erp-empty" role="alert"><h2>Não foi possível carregar</h2><p>{message}</p><button type="button" className="management-outline" onClick={onRetry}>Tentar novamente</button></div>;}
+export function ErrorState({onRetry,message='Não foi possível carregar os dados.'}:{onRetry:()=>void;message?:string}){return <div className="erp-empty erp-load-error" role="alert"><h2>Não foi possível carregar</h2><p>{message}</p><button type="button" className="management-outline" onClick={onRetry}>Tentar novamente</button></div>;}
 export function Feedback({message}:{message:string}){
  const [visible,setVisible]=useState(false);
  const success=Boolean(message)&&!/(não|falh|erro|mas |confira|informe|selecione|aguarde|enviando)/i.test(message)&&/(salv|registrad|confirmad|publicad|vinculad|movid|retirada|excluíd|definida)/i.test(message);
