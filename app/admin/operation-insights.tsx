@@ -20,7 +20,7 @@ export default function OperationInsights(){
  if(active)setReport(buildOperationReport(products,pricing as ReportPricing[],collections as ReportCollection[],(stock as {kind:string;quantity_on_hand:number}[]).filter(x=>x.kind==='insumo'&&x.quantity_on_hand===0).length));
  }catch{if(active)setError(true);}}void load();return()=>{active=false}},[db,revision]);
  if(error)return <section className="management-card"><h2>Saúde da operação</h2><p role="alert">Não foi possível carregar os indicadores.</p><button type="button" className="management-outline" onClick={()=>setRevision(x=>x+1)}>Tentar novamente</button></section>;
- if(!report)return <Skeleton label="Carregando indicadores da operação"/>;
+ if(!report)return <section className="erp-operation-placeholder" aria-busy="true" aria-label="Carregando indicadores da operação"><h2>Saúde da operação</h2><div className="erp-insights">{Array.from({length:5},(_,i)=><div className="erp-insight" key={i}><Skeleton label="Carregando indicador"/></div>)}</div><div className="management-card"><Skeleton label="Carregando insights"/></div><div className="erp-report-charts"><div className="management-card"><Skeleton label="Carregando gráficos"/></div><div className="management-card"><Skeleton label="Carregando gráficos"/></div></div></section>;
  if(!report.funnel[0].value)return <EmptyState title="Comece pela primeira joia" href="/admin/joias" action="Cadastrar joia"><p>Os indicadores serão calculados a partir dos cadastros e das precificações existentes.</p></EmptyState>;
  const items=[
  {title:'Joias sem preço',value:report.noPrice,href:'/admin/joias?situacao=sem_preco'},
