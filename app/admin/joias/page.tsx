@@ -2,18 +2,20 @@
 import Image from 'next/image';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { brl } from '@/lib/products';
 import { useIdentificationPhotos } from '@/lib/use-identification-photos';
 import { useManagement } from '../layout';
 import JewelryThumbnail from '../jewelry-thumbnail';
 import { Skeleton, Workflow, PageHeader, Modal } from '../ui/components';
 
+import { defaultJewelryPreferences, readJewelryPreferences, writeJewelryPreferences, jewelryColumns, type JewelryColumn } from '../jewelry-preferences';
+
 type Gender = 'masculina' | 'feminina' | 'unissex';
 type Jewelry = {
   id: string; registration_code: string; name: string; description: string | null;
   model: string | null; category: string; gender: Gender; measurements: string | null;
-  stock: number; price_cents: number; workflow_stage: string; active: boolean; collection_id: string | null;
+  commercial_image_urls?: string[]; stock: number; price_cents: number; workflow_stage: string; active: boolean; collection_id: string | null;
   jewelry_intake: { acquisition_cost_cents: number; identification_image_path: string | null } | null;
 };
 type Collection = { id: string; name: string };
@@ -36,15 +38,18 @@ export default function JewelryPage() {
   const [items, setItems] = useState<Jewelry[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState('');
-  const [statusFilter,setStatusFilter] = useState('todas');
-  const [sort,setSort] = useState('recentes');
-  const [view,setView] = useState('tabela');
-  const [page,setPage]=useState(1);
-  const [showCosts,setShowCosts]=useState(true);
-  useEffect(()=>{if(window.matchMedia('(max-width:600px)').matches)setView('grade');},[]);
-  useEffect(()=>{setPage(1)},[query,statusFilter,sort]);
-  useEffect(()=>{const q=new URLSearchParams(window.location.search).get('q');if(q)setQuery(q);},[]);
+  const [preferences,setPreferences]=useState(defaultJewelryPreferences);
+  const [preferencesReady,setPreferencesReady]=useState(false);
+  const {query,status:statusFilter,sort,view,page,density,columns,hidden}=preferences;
+  const setQuery=(query:string)=>setPreferences(p=>({...p,query,page:1}));
+  const setStatusFilter=(status:string)=>setPreferences(p=>({...p,status,page:1}));
+  const setSort=(sort:string)=>setPreferences(p=>({...p,sort,page:1}));
+  const setView=(view:string)=>setPreferences(p=>({...p,view}));
+  const setPage=(change:(value:number)=>number)=>setPreferences(p=>({...p,page:change(p.page)}));
+  useEffect(()=>{const restore=()=>{const value=readJewelryPreferences(window.location.search);if(!new URLSearchParams(window.location.search).has('visao')&&window.matchMedia('(max-width:600px)').matches)value.view='grade';setPreferences(value);setPreferencesReady(true);};restore();window.addEventListener('popstate',restore);return()=>window.removeEventListener('popstate',restore);},[]);
+  useEffect(()=>{if(preferencesReady){const url=new URL(window.location.href);url.search=writeJewelryPreferences(preferences,url.search);window.history.replaceState(null,'',url);}},[preferences,preferencesReady]);
+  const [drawerOpen,setDrawerOpen]=useState(false);
+  const [touched,setTouched]=useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>({ ...emptyDraft });
   const [image, setImage] = useState<File | null>(null);
@@ -59,7 +64,7 @@ export default function JewelryPage() {
 
   const refresh = useCallback(async () => {
     const [jewelryResult, collectionResult] = await Promise.all([
-      db.from('products').select('id,registration_code,name,description,model,category,gender,measurements,stock,price_cents,workflow_stage,active,collection_id,jewelry_intake(acquisition_cost_cents,identification_image_path)').order('created_at', { ascending: false }),
+      db.from('products').select('id,registration_code,name,description,model,category,gender,measurements,stock,price_cents,workflow_stage,active,collection_id,commercial_image_urls,jewelry_intake(acquisition_cost_cents,identification_image_path)').order('created_at', { ascending: false }),
       db.from('collections').select('id,name').order('name'),
     ]);
     const { data, error } = jewelryResult;
@@ -74,6 +79,7 @@ export default function JewelryPage() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   async function select(item: Jewelry | null) {
+    setDrawerOpen(true);setTouched(false);
     setEditingId(item?.id ?? null);
     setFileInputKey(key => key + 1);
     setDraft(item ? {
@@ -181,8 +187,9 @@ export default function JewelryPage() {
   const photoUrls = useIdentificationPhotos(db, items.map(item => item.jewelry_intake?.identification_image_path));
   const missingPhotos = items.filter(item => item.jewelry_intake && !item.jewelry_intake.identification_image_path);
   const collectionName = (id: string | null) => collections.find(collection => collection.id === id)?.name ?? 'Sem coleção';
-  const filtered = items.filter(item => statusFilter === 'todas' || (statusFilter === 'publicadas' ? item.active : statusFilter === 'sem_colecao' ? !item.collection_id : item.workflow_stage === 'aguardando_precificacao')).sort((a,b)=>sort === 'nome' ? a.name.localeCompare(b.name,'pt-BR') : sort === 'quantidade' ? b.stock-a.stock : 0).filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
-  const visible=filtered.slice((page-1)*25,page*25);
+  const filtered = items.filter(item => statusFilter === 'todas' || (statusFilter === 'publicadas' ? item.active : statusFilter === 'sem_colecao' ? !item.collection_id : statusFilter === 'sem_foto' ? !item.commercial_image_urls?.length : item.workflow_stage === 'aguardando_precificacao')).sort((a,b)=>sort === 'nome' ? a.name.localeCompare(b.name,'pt-BR') : sort === 'quantidade' ? b.stock-a.stock : 0).filter(item => `${item.registration_code} ${item.name} ${item.model ?? item.category} ${collectionName(item.collection_id)}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
+  const effectivePage=Math.min(page,Math.max(1,Math.ceil(filtered.length/25)));
+  const visible=filtered.slice((effectivePage-1)*25,effectivePage*25);
   let unitCost: number | null = null;
   let totalCost: number | null = null;
   try {
@@ -191,13 +198,28 @@ export default function JewelryPage() {
     if (unitCost !== null && Number.isSafeInteger(quantity) && quantity >= 0) totalCost = unitCost * quantity;
   } catch { /* formulário incompleto */ }
 
+  const liveErrors:string[]=[];
+  if(!draft.name.trim()||!draft.model.trim())liveErrors.push('Nome e modelo são obrigatórios.');
+  if(!draft.gender)liveErrors.push('Selecione o gênero da joia.');
+  if(!Number.isSafeInteger(Number(draft.quantity))||Number(draft.quantity)<0||Number(draft.quantity)>1000000)liveErrors.push('Informe uma quantidade entre 0 e 1.000.000.');
+  try{costInCents(draft.unitCost);}catch(e){liveErrors.push(e instanceof Error?e.message:'Informe um custo válido.');}
+  if(!image&&!current?.jewelry_intake?.identification_image_path)liveErrors.push('Adicione a foto de identificação para concluir o cadastro da joia.');
+  if(image&&(image.size<1||image.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(image.type)))liveErrors.push('Use uma foto JPG, PNG ou WebP de até 5 MB.');
+  const columnLabels:Record<JewelryColumn,string>={modelo:'Modelo',colecao:'Coleção',genero:'Gênero',quantidade:'Qtd.',custo:'Custo unit.',total:'Custo total',preco:'Preço venda',situacao:'Situação'};
+  const moveColumn=(id:JewelryColumn,direction:number)=>setPreferences(p=>{const next=[...p.columns];const i=next.indexOf(id);const j=i+direction;if(j<0||j>=next.length)return p;[next[i],next[j]]=[next[j],next[i]];return {...p,columns:next};});
+  const visibleColumns=columns.filter(id=>!hidden.includes(id));
+  function cell(item:Jewelry,id:JewelryColumn):ReactNode{
+    const cost=item.jewelry_intake?.acquisition_cost_cents;
+    const cells:Record<JewelryColumn,ReactNode>={modelo:item.model??item.category,colecao:collectionName(item.collection_id),genero:genderLabels[item.gender]??'—',quantidade:item.stock,custo:cost===undefined?'—':brl(cost),total:cost===undefined?'—':brl(cost*item.stock),preco:item.workflow_stage==='aguardando_precificacao'||item.price_cents<=0?<span className="jewelry-pending">Pendente</span>:brl(item.price_cents),situacao:<span className="management-badge">{item.active?'Publicada':!item.collection_id?'Coleção pendente':stageLabels[item.workflow_stage]??'Em cadastro'}</span>};
+    return cells[id];
+  }
   return <main className="management-page jewelry-page">
     <p className="eyebrow">ETAPA 01 · REGISTRO</p>
     <div className="management-title-row"><div><PageHeader title={"Joias"} description={"Cadastre todas as peças aqui. Depois, distribua cada joia em uma coleção e só então defina o preço. Salvar não publica a joia."}/></div><button className="management-outline" type="button" onClick={() => void select(null)}>+ Nova joia</button></div>
 
-    <section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
+    <Modal open={drawerOpen} variant="drawer" title={current?'Editar joia':'Cadastrar joia'} onClose={()=>{if(!saving)setDrawerOpen(false);}}><section id="jewelry-editor" className="management-card jewelry-editor"><div className="jewelry-form-head"><div><p className="eyebrow">{current ? current.registration_code : 'NOVO REGISTRO'}</p><h2>{current ? 'Editar joia' : 'Cadastrar joia'}</h2></div><span className="management-badge">{current?.active ? 'Publicada' : current ? stageLabels[current.workflow_stage] ?? 'Em cadastro' : 'Não publicada'}</span></div>
       {current?.active && <p className="jewelry-next-step">Esta joia está publicada. Alterações nos dados e na quantidade são salvas normalmente. <strong>Se o custo unitário mudar, ela será retirada da loja para nova precificação.</strong> As fotos comerciais continuam na página <Link href="/admin/catalogo">Catálogo</Link>; a coleção é alterada em <Link href="/admin/colecoes">Coleções</Link>.</p>}
-      {current && <Workflow collection={Boolean(current.collection_id)} priced={current.workflow_stage !== 'aguardando_precificacao' && current.price_cents > 0} published={current.active}/>}<form onSubmit={save}>
+      {current && <Workflow collection={Boolean(current.collection_id)} priced={current.workflow_stage !== 'aguardando_precificacao' && current.price_cents > 0} published={current.active}/>}<form onSubmit={save} onChange={()=>setTouched(true)} aria-describedby="jewelry-live-validation"><div id="jewelry-live-validation" aria-live="polite">{touched&&liveErrors.length>0&&<ul className="erp-validation">{liveErrors.map(e=><li key={e}>{e}</li>)}</ul>}</div>
         <div className="management-fields">
           <label>Nome comercial<input required maxLength={120} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="Ex.: Colar Aurora"/></label>
           <label>Modelo<input required maxLength={80} list="jewelry-models" value={draft.model} onChange={event => setDraft({ ...draft, model: event.target.value })} placeholder="Ex.: Cordão"/><datalist id="jewelry-models">{['Cordão', 'Brinco', 'Pulseira', 'Choker', 'Bracelete', 'Anel', 'Pingente'].map(value => <option value={value} key={value}/>)}</datalist></label>
@@ -216,18 +238,17 @@ export default function JewelryPage() {
       <p role="status" className="management-status">{message}</p>
       {lastSaved && <div className="jewelry-save-confirmation" role="status"><Image unoptimized width={96} height={96} src={lastSaved.photoUrl} alt={`Foto de identificação de ${lastSaved.name}`}/><div><strong>Cadastro confirmado · {lastSaved.code}</strong><p>{lastSaved.name} · {lastSaved.model} · {genderLabels[lastSaved.gender]}</p><p>Quantidade: {lastSaved.quantity} · Custo unitário: {brl(lastSaved.unitCostCents)}</p><p>Medidas: {lastSaved.measurements || 'Não informadas'}</p><p>Descrição: {lastSaved.description || 'Não informada'}</p><small>Foto de identificação vinculada e dados conferidos no banco. O formulário já está pronto para outra joia.</small></div></div>}
       {current && !current.active && <div className="jewelry-followup"><button className="management-outline" type="button" onClick={() => void select(null)}>Cadastrar outra joia</button><Link className="management-outline" href="/admin/colecoes">Definir coleções</Link></div>}
-    </section>
+    </section></Modal>
     <section className="management-card jewelry-missing-photos"><h2>Joias sem foto de identificação <small>{missingPhotos.length}</small></h2>{loading ? <p>Verificando fotos...</p> : missingPhotos.length === 0 ? <p>Todas as joias cadastradas têm foto de identificação.</p> : <ul>{missingPhotos.map(item => <li key={item.id}><span><strong>{item.name}</strong><small>{item.registration_code}</small></span><button type="button" className="management-outline" onClick={() => void select(item)}>Adicionar foto</button></li>)}</ul>}</section>
     <section className="management-card jewelry-table-card" aria-labelledby="registered-jewelry-title">
       <div className="jewelry-table-head"><div><h2 id="registered-jewelry-title">Joias cadastradas <small>{items.length}</small></h2><p>Custos e preços desta tabela são visíveis somente na gestão.</p></div><label>Buscar joia<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, código ou coleção"/></label></div>
-      <div className="erp-toolbar"><label>Situação<select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="todas">Todas</option><option value="publicadas">Publicadas</option><option value="sem_colecao">Sem coleção</option><option value="sem_preco">Sem preço</option></select></label><label>Ordenar<select value={sort} onChange={e=>setSort(e.target.value)}><option value="recentes">Mais recentes</option><option value="nome">Nome</option><option value="quantidade">Maior quantidade</option></select></label><div role="group" aria-label="Visualização das joias"><button type="button" className="management-outline" aria-pressed={view==='tabela'} onClick={()=>setView('tabela')}>Tabela</button><button type="button" className="management-outline" aria-pressed={view==='grade'} onClick={()=>setView('grade')}>Grade</button></div></div>
+      <div className="erp-toolbar"><button type="button" className="management-outline" onClick={()=>setPreferences({...defaultJewelryPreferences,view:preferences.view})}>Limpar filtros</button><label>Situação<select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="todas">Todas</option><option value="publicadas">Publicadas</option><option value="sem_colecao">Sem coleção</option><option value="sem_preco">Sem preço</option><option value="sem_foto">Sem foto comercial</option></select></label><label>Ordenar<select value={sort} onChange={e=>setSort(e.target.value)}><option value="recentes">Mais recentes</option><option value="nome">Nome</option><option value="quantidade">Maior quantidade</option></select></label><div role="group" aria-label="Visualização das joias"><button type="button" className="management-outline" aria-pressed={view==='tabela'} onClick={()=>setView('tabela')}>Tabela</button><button type="button" className="management-outline" aria-pressed={view==='grade'} onClick={()=>setView('grade')}>Grade</button></div></div>
       {view==='grade' && <div className="erp-cards">{visible.map(item=><article className="erp-card" key={item.id}><JewelryThumbnail url={photoUrls[item.jewelry_intake?.identification_image_path??'']} name={item.name} hasPhoto={Boolean(item.jewelry_intake?.identification_image_path)}/><h3>{item.name}</h3><p>{item.registration_code} · {collectionName(item.collection_id)}</p><Workflow collection={Boolean(item.collection_id)} priced={item.workflow_stage!=='aguardando_precificacao'&&item.price_cents>0} published={item.active}/><p>{item.stock} unidade(s)</p><button type="button" className="management-outline" onClick={()=>void select(item)}>Editar</button></article>)}</div>}
-      <div hidden={view!=='tabela'} className={showCosts?'':'erp-hide-costs'}><label className="erp-inline-check"><input type="checkbox" checked={showCosts} onChange={e=>setShowCosts(e.target.checked)}/>Exibir colunas de custo</label>{loading ? <Skeleton label="Carregando joias"/> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll" role="region" aria-label="Joias cadastradas para gestão" tabIndex={0}><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th><th>Modelo</th><th>Coleção</th><th>Gênero</th><th>Qtd.</th><th>Custo unit.</th><th>Custo total</th><th>Preço venda</th><th>Situação</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
-        const cost = item.jewelry_intake?.acquisition_cost_cents;
+      <div hidden={view!=='tabela'} className={density==='compacta'?'erp-density-compact':''}><div className="erp-toolbar"><label>Densidade<select value={density} onChange={e=>setPreferences(p=>({...p,density:e.target.value}))}><option value="confortavel">Confortável</option><option value="compacta">Compacta</option></select></label><details className="erp-column-config"><summary>Configurar colunas</summary><p>Joia e ações ficam fixas para identificação e operação.</p>{columns.map((id,index)=><div key={id}><label className="erp-inline-check"><input type="checkbox" checked={!hidden.includes(id)} onChange={e=>setPreferences(p=>({...p,hidden:e.target.checked?p.hidden.filter(x=>x!==id):[...p.hidden,id]}))}/>{columnLabels[id]}</label><button type="button" disabled={index===0} aria-label={'Mover '+columnLabels[id]+' para a esquerda'} onClick={()=>moveColumn(id,-1)}>←</button><button type="button" disabled={index===jewelryColumns.length-1} aria-label={'Mover '+columnLabels[id]+' para a direita'} onClick={()=>moveColumn(id,1)}>→</button></div>)}</details></div>{loading ? <Skeleton label="Carregando joias"/> : visible.length === 0 ? <p>{items.length === 0 ? 'Nenhuma joia cadastrada ainda.' : 'Nenhuma joia corresponde à busca.'}</p> : <div className="jewelry-table-scroll" role="region" aria-label="Joias cadastradas para gestão" tabIndex={0}><table className="jewelry-table"><caption className="sr-only">Joias cadastradas para gestão</caption><thead><tr><th>Código / Joia</th>{visibleColumns.map(id=><th key={id}>{columnLabels[id]}</th>)}<th><span className="sr-only">Ações</span></th></tr></thead><tbody>{visible.map(item => {
         const path = item.jewelry_intake?.identification_image_path;
-        return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td><td>{item.model ?? item.category}</td><td>{collectionName(item.collection_id)}</td><td>{genderLabels[item.gender] ?? '—'}</td><td>{item.stock}</td><td>{cost === undefined ? '—' : brl(cost)}</td><td>{cost === undefined ? '—' : brl(cost * item.stock)}</td><td>{item.workflow_stage === 'aguardando_precificacao' || item.price_cents <= 0 ? <span className="jewelry-pending">Pendente</span> : brl(item.price_cents)}</td><td><span className="management-badge">{item.active ? 'Publicada' : !item.collection_id ? 'Coleção pendente' : stageLabels[item.workflow_stage] ?? 'Em cadastro'}</span></td><td><div className="jewelry-table-actions"><button type="button" onClick={() => void select(item)}>Editar</button><button type="button" className="jewelry-delete-button" onClick={() => { setDeleteCandidate(item); setDeleteCode(''); }}>Excluir</button></div></td></tr>;
+        return <tr key={item.id}><td><div className="jewelry-name-with-photo"><JewelryThumbnail url={path ? photoUrls[path] : undefined} name={item.name} hasPhoto={Boolean(path)}/><span><strong>{item.name}</strong><small>{item.registration_code}</small></span></div></td>{visibleColumns.map(id=><td key={id}>{cell(item,id)}</td>)}<td><div className="jewelry-table-actions"><button type="button" onClick={() => void select(item)}>Editar</button><button type="button" className="jewelry-delete-button" onClick={() => { setDeleteCandidate(item); setDeleteCode(''); }}>Excluir</button></div></td></tr>;
       })}</tbody></table></div>}
-    </div><div className="erp-pagination"><span>{filtered.length} joia(s) · Página {page} de {Math.max(1,Math.ceil(filtered.length/25))}</span><button className="management-outline" type="button" disabled={page<=1} onClick={()=>setPage(x=>x-1)}>Anterior</button><button className="management-outline" type="button" disabled={page*25>=filtered.length} onClick={()=>setPage(x=>x+1)}>Próxima</button></div></section>
+    </div><div className="erp-pagination"><span>{filtered.length} joia(s) · Página {effectivePage} de {Math.max(1,Math.ceil(filtered.length/25))}</span><button className="management-outline" type="button" disabled={effectivePage<=1} onClick={()=>setPage(()=>effectivePage-1)}>Anterior</button><button className="management-outline" type="button" disabled={effectivePage*25>=filtered.length} onClick={()=>setPage(()=>effectivePage+1)}>Próxima</button></div></section>
     {deleteCandidate && <Modal open={true} title="Excluir joia?" onClose={()=>{if(!deleting){setDeleteCandidate(null);setDeleteCode('');}}}><p><strong>{deleteCandidate.name}</strong> · {deleteCandidate.registration_code}</p><p>Esta ação remove o cadastro, a precificação e o vínculo com a coleção. {deleteCandidate.active ? 'A peça publicada sairá da loja imediatamente. ' : ''}Joias com histórico de pedidos não podem ser excluídas.</p><form onSubmit={deleteJewelry}><label>Digite <strong>{deleteCandidate.registration_code}</strong> para confirmar<input autoFocus autoComplete="off" value={deleteCode} onChange={event => setDeleteCode(event.target.value)} placeholder={deleteCandidate.registration_code}/></label><div className="jewelry-delete-actions"><button type="button" className="management-outline" disabled={deleting} onClick={() => { setDeleteCandidate(null); setDeleteCode(''); }}>Cancelar</button><button type="submit" className="jewelry-delete-confirm" disabled={deleting || deleteCode.trim() !== deleteCandidate.registration_code}>{deleting ? 'Excluindo...' : 'Excluir definitivamente'}</button></div></form></Modal>}
   </main>;
 }
