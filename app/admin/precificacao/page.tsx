@@ -49,7 +49,7 @@ export default function PricingPage() {
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
-    setLoading(true);setLoadError(false);
+    setLoading(true);setLoadError(false);setMessage('');
     const [jewelryResult, stockResult, modelResult, pricingResult] = await Promise.all([
       db.from('products').select('id,registration_code,name,model,stock,price_cents,workflow_stage,active,collection_id,collections(name),jewelry_intake(acquisition_cost_cents,identification_image_path)').order('created_at', { ascending: false }),
       db.from('stock_items').select('id,kind,unit_cost_cents,quantity_on_hand,acquired_quantity,acquired_on'),
