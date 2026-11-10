@@ -82,5 +82,5 @@
 @media(max-width:900px){.erp-report-charts{grid-template-columns:1fr}.erp-drawer{padding:20px}.erp-toast{right:16px;bottom:16px}}
 
 .management-shell .sales-kpi small,.management-shell .stock-footnote{color:var(--erp-muted)}
-.management-shell:has(.erp-load-error) .erp-insights,.management-shell:has(.erp-load-error) .pricing-queue-summary{display:none}
+.stock-page:has(>.erp-load-error)>.erp-insights,.management-page:has(>.erp-load-error)>.pricing-queue-summary{display:none}
 .erp-batch-actions{padding:16px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.8rem}.erp-batch-actions p{width:100%;margin:0}
