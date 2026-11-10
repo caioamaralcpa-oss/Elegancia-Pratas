@@ -1,4 +1,5 @@
 'use client';
+import { PageHeader } from '../ui/components';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
@@ -98,7 +99,7 @@ export default function CollectionsPage() {
   );
   const visibleIds = visible.map(item => item.id);
 
-  return <main className="management-page collection-page"><p className="eyebrow">ETAPA 02 · ORGANIZAÇÃO</p><h1>Coleções / campanhas</h1><p className="management-intro">Cadastre a coleção e distribua as joias. Cada peça pertence a uma coleção por vez; depois de vinculada, ela fica disponível na Precificação. Você pode movê-la para outra coleção mais tarde.</p>
+  return <main className="management-page collection-page"><p className="eyebrow">ETAPA 02 · ORGANIZAÇÃO</p><PageHeader title={"Coleções / campanhas"} description={"Cadastre a coleção e distribua as joias. Cada peça pertence a uma coleção por vez; depois de vinculada, ela fica disponível na Precificação. Você pode movê-la para outra coleção mais tarde."}/>
     <div className="pricing-queue-summary"><div><strong>{pending.length}</strong><span>Sem coleção · aguardando</span></div><div><strong>{jewelry.length - pending.length}</strong><span>Com coleção definida</span></div></div>
     <section id="collection-editor" className="management-card"><h2>{editingId ? 'Editar coleção' : 'Criar coleção'}</h2><form onSubmit={saveCollection} className="management-fields"><label className="management-wide">Nome da coleção ou campanha<input required minLength={2} maxLength={100} value={name} onChange={event => setName(event.target.value)} placeholder="Ex.: Essência, Dia das Mães"/></label><div className="management-wide"><button className="botao" type="submit" disabled={busy}>{busy ? 'Salvando...' : editingId ? 'Salvar nome' : 'Cadastrar coleção'}</button>{editingId && <button className="management-outline" type="button" onClick={() => { setEditingId(null); setName(''); }}>Cancelar</button>}</div></form></section>
     <div className="erp-toolbar"><button type="button" className="management-outline" aria-pressed={board} onClick={()=>setBoard(!board)}>{board?'Ocultar quadro':'Abrir quadro por coleção'}</button><span>Você também pode distribuir por seleção na tabela abaixo.</span></div>
