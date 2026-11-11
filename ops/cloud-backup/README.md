@@ -1,7 +1,8 @@
 # Backup privado da Elegância Pratas
 
-**Estado em 11/11/2026: rotinas preparadas e testadas; nenhum backup real concluído. Merge do PR 12 continua bloqueado.**
-O usuário autorizou a execução dos backups. As credenciais foram cadastradas como Sensitive no projeto separado, mas as verificações identificaram conexão PostgreSQL de outro projeto e uma chave de Storage de formato não reconhecido. As senhas/chaves não foram exibidas. A existência das variáveis não equivale a uma cópia concluída.
+**Estado em 11/11/2026, 18:46 (Brasília): Storage copiado e verificado; backup do banco pendente por autenticação recusada. Merge do PR 12 continua bloqueado.**
+
+O usuário atualizou as duas configurações e autorizou a execução. A cópia das imagens foi concluída e verificada na nuvem privada. O banco agora usa o usuário esperado do projeto, Session pooler na porta 5432 e validação TLS com a CA oficial; o servidor recusou a autenticação com 28P01. Nenhuma senha foi exibida nem redefinida. Nenhum dado real ou código foi salvo na máquina do usuário.
 
 ## Ambiente separado
 
@@ -13,18 +14,41 @@ O usuário autorizou a execução dos backups. As credenciais foram cadastradas 
 - A implantação da loja, o PR 12, seus diretórios protegidos, banco, RPCs, permissões e variáveis de ambiente permanecem inalterados por esta preparação.
 - Nenhum dado real ou credencial foi salvo no repositório nem na máquina do usuário.
 
-## Correções de acesso pendentes
+## Única correção pendente
 
-No link acima, corrigir as duas variáveis existentes **somente no projeto elegancia-backup-privado**, ambiente Production, marcadas como **Sensitive**:
+No [painel seguro do projeto de backup](https://vercel.com/99caio/elegancia-backup-privado/settings/environment-variables), conferir a senha original do banco dentro de **BACKUP_DATABASE_URL**, preservando Sensitive e Production. A autenticação foi recusada; o formato, usuário, porta e ausência de texto de exemplo foram conferidos. Não redefinir a senha do banco nem publicar seu valor no chat/repositório. Se houver caracteres reservados, a senha precisa estar codificada corretamente na URI.
 
-| Nome | Conteúdo |
-| --- | --- |
-| BACKUP_DATABASE_URL | Conexão PostgreSQL completa, com a senha, do projeto da Elegância. Usar Supabase → Connect → Session pooler, porta 5432, do projeto sltohhqejguauhanjhfj. O host direto foi confirmado, mas o teste no ambiente de backup retornou ENETUNREACH por ser IPv6; não usar esse caminho neste ambiente. Não usar a URL HTTP da API, chave anon ou pooler de transações. |
-| BACKUP_STORAGE_SERVICE_KEY | A chave de servidor service_role (JWT) ou sb_secret_ do mesmo Supabase, usada para ler as fotos privadas. Não usar chave anon/publicável, senha ou URL de conexão. |
+**BACKUP_STORAGE_SERVICE_KEY já foi validada na execução real do Storage e não precisa ser alterada.**
 
-As credenciais devem ser cadastradas diretamente no painel seguro da Vercel, usando o salvamento do usuário; não colar no chat, no código, em links públicos ou em documentos do repositório. Não redefinir a senha do banco para esta tarefa sem uma decisão separada.
+Após corrigir a conexão, executar uma nova implantação somente do projeto de backup com os arquivos desta pasta, npm ci e npm run backup. Uma edição de variável não dispara a cópia automaticamente. A implantação oficial da loja não deve ser usada para executar o backup.
 
-Quando estiverem cadastradas, o responsável pela execução deve iniciar uma nova implantação **deste projeto de backup**, usando os arquivos desta pasta e npm ci. Uma edição de variável sozinha não dispara a cópia; não promover nenhum deployment da loja para fazer backup.
+## Cópia de Storage concluída
+
+- Conclusão: **11/11/2026, 18:41:18 (Brasília)**, 21:41:18 UTC.
+- Identificação: `2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9`.
+- Deployment: `dpl_4dyJjbVNYna1yysYguvzwUJwjQ5x`.
+- **66 arquivos em 2 buckets; 3.025.616 bytes de arquivos de origem.**
+- Arquivo comprimido privado: **3064163 bytes**.
+- SHA-256: `ef62fc2f7dca9330e66fa8cfc63de169d000ee31618e900c7b79e4bbd929946a`.
+- Caminho no Blob privado: `sltohhqejguauhanjhfj/storage-only/2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9/storage-backup.json.gz`.
+- Arquivo de confirmação: VERIFIED.json na mesma pasta.
+- Conferência realizada: leitura autenticada da cópia privada, descompressão, reconstrução e verificação de tamanho/SHA-256 de todos os arquivos; acesso anônimo negado.
+- O inventário antes/depois da cópia foi comparado; caminhos e configurações dos buckets foram preservados no pacote.
+- Blob privado conferido com 2 objetos, 3.064.899 bytes, incluindo pacote e confirmação.
+- **databaseBackupIncluded=false:** esta cópia não contém um dump do banco; não libera o merge sozinha.
+
+## Correções da ferramenta de backup
+
+A rotina completa foi ajustada para aceitar chaves modernas sb_secret_ usando somente o header apikey; as chaves legadas mantêm o Bearer correspondente. Somente a ferramenta em ops/cloud-backup foi alterada; não houve alteração em lib/, supabase/, app/api/ ou dependências da loja.
+
+A CA pública do Supabase foi obtida via HTTPS no endereço configurado pelo próprio [Studio oficial](https://github.com/supabase/supabase/blob/f38928ad90f1c2bd44f668411fb1d2312754d258/apps/studio/hooks/custom-content/custom-content.json):
+https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt
+
+O arquivo público supabase-ca.crt acompanha a ferramenta. Antes da conexão são conferidos CA, autoassinatura, validade e fingerprint SHA-256 **807025AD50D4ED219D2C9C7D299C004F824EB00CF7F65AFEF607D07B72E6CAFA**. Node mantém rejectUnauthorized=true; pg_dump usa verify-full e a mesma CA. Não há desativação de validação TLS nem mudança na configuração SSL do servidor de produção.
+
+Validação no build isolado: **5 testes de redação segura + 4 testes de headers/CA aprovados**, incluindo rejeição de CA incorreta e vencida; npm audit **0 vulnerabilidades**. A rotina independente teve **5 testes aprovados** antes da cópia real.
+
+Tentativa completa com CA corrigida: `dpl_Fms8W76rWxT7PvR5uWb6Toxivx6R`, resultado **connect / 28P01**. A consulta de formato subsequente (`dpl_2scKGCnKQ1b67qSBqUWxJR6H4LLa`) não fez conexão e confirmou usuário postgres do projeto esperado, porta 5432, banco postgres e ausência de placeholders, colchetes, aspas ou espaços externos na senha. O dump do banco não iniciou.
 
 ## O que a rotina faz quando houver credenciais
 
@@ -56,7 +80,7 @@ Dependências fixadas com lockfile: @vercel/sandbox 3.9.1, @vercel/blob 2.9.0, p
 A prova de armazenamento usa um objeto sintético temporário, confere leitura autenticada/negação sem autenticação e remove apenas esse próprio objeto do projeto separado. Não exporta nenhum dado da produção e não equivale a um backup concluído.
 
 
-## Execuções e bloqueios em 11/11/2026
+## Histórico anterior às correções de credenciais em 11/11/2026
 
 - A conexão PostgreSQL cadastrada passou na validação sintática, mas a proteção de origem retornou WRONG_SOURCE_PROJECT antes de conectar ao banco (deployment dpl_HfeL9xqShjc58C6YDfa6f8Jobzfs). Não foi testada a senha contra outro projeto.
 - O host oficial foi confirmado pelo conector Supabase e pela URL pública configurada na loja. O teste de rede isolado do endereço direto encontrou apenas IPv6 e retornou ENETUNREACH, sem tentar autenticação.

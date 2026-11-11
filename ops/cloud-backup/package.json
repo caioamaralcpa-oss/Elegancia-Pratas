@@ -6,7 +6,7 @@
   "scripts": {
     "backup": "node backup.mjs",
     "test": "node --test worker.test.mjs",
-    "prebackup": "node --check backup.mjs && node --check worker.mjs && node --test safe-errors.test.mjs"
+    "prebackup": "node --check backup.mjs && node --check worker.mjs && node --test safe-errors.test.mjs && node --test storage-auth.test.mjs"
   },
   "dependencies": {
     "@vercel/sandbox": "3.9.1",

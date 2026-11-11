@@ -1,51 +1,66 @@
 {
-  "checkedAt": "2026-11-11T20:51:24Z",
-  "status": "blocked_configuration",
-  "backupsCompleted": false,
+  "checkedAt": "2026-11-11T21:46:20Z",
+  "status": "storage_verified_database_authentication_blocked",
   "sourceProject": "sltohhqejguauhanjhfj",
   "sourceWrites": 0,
   "localDataSaved": false,
-  "inventory": {
-    "buckets": 2,
+  "storage": {
+    "status": "verified",
+    "kind": "storage_only",
+    "databaseBackupIncluded": false,
+    "project": "sltohhqejguauhanjhfj",
+    "runId": "2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9",
     "files": 66,
-    "bytes": 3025616
+    "buckets": 2,
+    "sourceFileBytes": 3025616,
+    "archiveBytes": 3064163,
+    "sha256": "ef62fc2f7dca9330e66fa8cfc63de169d000ee31618e900c7b79e4bbd929946a",
+    "privateStorage": true,
+    "anonymousAccessDenied": true,
+    "sourceWrites": 0,
+    "pathname": "sltohhqejguauhanjhfj/storage-only/2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9/storage-backup.json.gz",
+    "completedAt": "2026-11-11T21:41:18.805Z",
+    "restoreTest": "Private cloud archive downloaded, decompressed; every object size and SHA-256 verified",
+    "deployment": "dpl_4dyJjbVNYna1yysYguvzwUJwjQ5x"
   },
   "database": {
-    "configuredUrlSyntaxValid": true,
-    "configuredHostMatchesSource": false,
-    "passwordAuthenticationAttempted": false,
-    "directHostDnsFamilies": [
-      6
-    ],
-    "directHostNetworkError": "ENETUNREACH",
-    "sessionPoolerHostAvailableToConnector": false
+    "status": "not_backed_up",
+    "deployment": "dpl_Fms8W76rWxT7PvR5uWb6Toxivx6R",
+    "stage": "connect",
+    "code": "28P01",
+    "tlsVerification": "passed with official pinned Supabase Root 2021 CA",
+    "passwordAuthenticated": false,
+    "dumpStarted": false,
+    "formatInspection": {
+      "deployment": "dpl_2scKGCnKQ1b67qSBqUWxJR6H4LLa",
+      "sourceConnectionAttempted": false,
+      "expectedPoolerUser": true,
+      "sessionPort5432": true,
+      "passwordPlaceholder": false,
+      "outerPasswordBrackets": false,
+      "outerPasswordQuotes": false,
+      "outerPasswordWhitespace": false
+    }
   },
-  "storage": {
-    "deployment": "dpl_Am9UVtJepBbBuBsKzUU6qcQPuUoc",
-    "stage": "initialize",
-    "code": "INVALID_STORAGE_CREDENTIAL",
-    "credentialFormat": "unrecognized",
-    "sourceRequestsAttempted": false,
-    "syntheticTestsPassed": 5,
-    "syntheticTestsFailed": 0,
+  "verification": {
+    "storageSyntheticTests": 5,
+    "safeErrorTests": 5,
+    "storageAuthAndCaTests": 4,
+    "failedTests": 0,
     "npmAuditVulnerabilities": 0
   },
   "privateBlob": {
     "id": "store_yroVHhRBhJB7TcEo",
     "access": "private",
-    "objects": 0,
-    "bytes": 0
+    "objects": 2,
+    "bytes": 3064899
   },
   "production": {
     "deployment": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
     "sha": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
-    "readyState": "READY",
+    "state": "READY",
     "pr12Draft": true,
     "pr12Merged": false
   },
-  "requiredActions": [
-    "Correct BACKUP_DATABASE_URL using this project's actual Session pooler connection, port 5432",
-    "Replace BACKUP_STORAGE_SERVICE_KEY with this project's server service_role JWT or sb_secret_ key",
-    "Run a new deployment of only the separate backup project; verify both database and Storage before merge"
-  ]
+  "requiredAction": "Verify only the original database password in BACKUP_DATABASE_URL; keep Production/Sensitive. Storage key already works. No password reset authorized."
 }

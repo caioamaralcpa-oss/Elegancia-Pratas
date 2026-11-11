@@ -2,13 +2,26 @@ import fs from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomUUID, X509Certificate } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { safeError } from './safe-errors.mjs';
 import { put, get } from '@vercel/blob';
 const PROJECT='sltohhqejguauhanjhfj';
+export function verifySupabaseCa(pem,now=Date.now()){
+ let cert;try{cert=new X509Certificate(pem)}catch{throw Error('INVALID_SUPABASE_CA')}
+ if(!cert.ca||cert.fingerprint256!=='80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA'||!cert.verify(cert.publicKey)||now<Date.parse(cert.validFrom)||now>Date.parse(cert.validTo))throw Error('INVALID_SUPABASE_CA');
+ return pem;
+}
+export function storageHeaders(value){
+ let key=(value??'').trim();
+ const assignment=key.match(/^(?:export\s+)?(?:BACKUP_STORAGE_SERVICE_KEY|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)\s*=\s*([\s\S]*)$/);
+ if(assignment)key=assignment[1].trim();
+ if(key.length>=2&&((key.startsWith('"')&&key.endsWith('"'))||(key.startsWith("'")&&key.endsWith("'"))))key=key.slice(1,-1).trim();
+ if(!key)throw Error('MISSING_STORAGE_CREDENTIAL');
+ return key.startsWith('sb_secret_')?{apikey:key}:{apikey:key,Authorization:'Bearer '+key};
+}
 export function validateConnection(value, fixture=false){
  const u=new URL(value);
  if(!['postgres:','postgresql:'].includes(u.protocol))throw Error('INVALID_CONNECTION');
@@ -25,9 +38,11 @@ const ident=s=>'"'+s.replaceAll('"','""')+'"';
 export async function createBackup({databaseUrl,storageKey,adapter,download,fixture=false}){
  const {u,local}=validateConnection(databaseUrl,fixture);
  if(!fixture&&!storageKey)throw Error('MISSING_STORAGE_CREDENTIAL');
+ const caPath=fileURLToPath(new URL('./supabase-ca.crt',import.meta.url));
+ const ca=local?undefined:verifySupabaseCa(await fs.readFile(caPath,'utf8'));
  const readOnly='-c default_transaction_read_only=on -c statement_timeout=600000 -c lock_timeout=10000';
- const env={...process.env,PGHOST:u.hostname,PGPORT:u.port||'5432',PGDATABASE:decodeURIComponent(u.pathname.slice(1)),PGUSER:decodeURIComponent(u.username),PGPASSWORD:decodeURIComponent(u.password),PGOPTIONS:readOnly,PGSSLMODE:local?'disable':'verify-full',PGSSLROOTCERT:local?'':'system'};
- const client=new pg.Client({host:env.PGHOST,port:Number(env.PGPORT),database:env.PGDATABASE,user:env.PGUSER,password:env.PGPASSWORD,options:readOnly,connectionTimeoutMillis:15000,ssl:local?false:{rejectUnauthorized:true}});
+ const env={...process.env,PGHOST:u.hostname,PGPORT:u.port||'5432',PGDATABASE:decodeURIComponent(u.pathname.slice(1)),PGUSER:decodeURIComponent(u.username),PGPASSWORD:decodeURIComponent(u.password),PGOPTIONS:readOnly,PGSSLMODE:local?'disable':'verify-full',PGSSLROOTCERT:local?'':caPath};
+ const client=new pg.Client({host:env.PGHOST,port:Number(env.PGPORT),database:env.PGDATABASE,user:env.PGUSER,password:env.PGPASSWORD,options:readOnly,connectionTimeoutMillis:15000,ssl:local?false:{ca,rejectUnauthorized:true}});
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'elegancia-backup-'));
  const dir=path.join(root,'bundle');await fs.mkdir(path.join(dir,'objects'),{recursive:true});
  const runId=new Date().toISOString().replaceAll(':','-')+'-'+randomUUID();
@@ -45,7 +60,7 @@ export async function createBackup({databaseUrl,storageKey,adapter,download,fixt
   stage='roles_dump';await command('pg_dumpall',['--roles-only','--no-role-passwords','--file='+path.join(dir,'roles.sql')],env,dir);
   const sizes=await fs.stat(path.join(dir,'database.dump'));if(sizes.size<100)throw Error('EMPTY_DATABASE_ARCHIVE');
   stage='storage_download';for(const object of objects){
-   const buffer=download?await download(object):Buffer.from(await (await fetch('https://'+PROJECT+'.supabase.co/storage/v1/object/'+encodeURIComponent(object.bucket_id)+'/'+object.name.split('/').map(encodeURIComponent).join('/'),{headers:{apikey:storageKey,Authorization:'Bearer '+storageKey},redirect:'error'}).then(r=>{if(!r.ok)throw Error('STORAGE_DOWNLOAD_FAILED');return r})).arrayBuffer());
+   const buffer=download?await download(object):Buffer.from(await (await fetch('https://'+PROJECT+'.supabase.co/storage/v1/object/'+encodeURIComponent(object.bucket_id)+'/'+object.name.split('/').map(encodeURIComponent).join('/'),{headers:storageHeaders(storageKey),redirect:'error'}).then(r=>{if(!r.ok)throw Error('STORAGE_DOWNLOAD_FAILED');return r})).arrayBuffer());
    const expected=Number(object.metadata?.size);if(!Number.isSafeInteger(expected)||expected!==buffer.length)throw Error('STORAGE_SIZE_MISMATCH');
    const etag=object.metadata?.eTag??object.metadata?.etag;if(typeof etag==='string'&&/^[a-f0-9]{32}$/i.test(etag.replaceAll('"',''))&&createHash('md5').update(buffer).digest('hex')!==etag.replaceAll('"','').toLowerCase())throw Error('STORAGE_ETAG_MISMATCH');
    const file='objects/'+sha(Buffer.from(object.bucket_id+'\0'+object.name))+'.bin';
