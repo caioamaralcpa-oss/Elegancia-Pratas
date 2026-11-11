@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-11-11T20:51:24Z",
+  "status": "blocked_configuration",
+  "backupsCompleted": false,
+  "sourceProject": "sltohhqejguauhanjhfj",
+  "sourceWrites": 0,
+  "localDataSaved": false,
+  "inventory": {
+    "buckets": 2,
+    "files": 66,
+    "bytes": 3025616
+  },
+  "database": {
+    "configuredUrlSyntaxValid": true,
+    "configuredHostMatchesSource": false,
+    "passwordAuthenticationAttempted": false,
+    "directHostDnsFamilies": [
+      6
+    ],
+    "directHostNetworkError": "ENETUNREACH",
+    "sessionPoolerHostAvailableToConnector": false
+  },
+  "storage": {
+    "deployment": "dpl_Am9UVtJepBbBuBsKzUU6qcQPuUoc",
+    "stage": "initialize",
+    "code": "INVALID_STORAGE_CREDENTIAL",
+    "credentialFormat": "unrecognized",
+    "sourceRequestsAttempted": false,
+    "syntheticTestsPassed": 5,
+    "syntheticTestsFailed": 0,
+    "npmAuditVulnerabilities": 0
+  },
+  "privateBlob": {
+    "id": "store_yroVHhRBhJB7TcEo",
+    "access": "private",
+    "objects": 0,
+    "bytes": 0
+  },
+  "production": {
+    "deployment": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
+    "sha": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+    "readyState": "READY",
+    "pr12Draft": true,
+    "pr12Merged": false
+  },
+  "requiredActions": [
+    "Correct BACKUP_DATABASE_URL using this project's actual Session pooler connection, port 5432",
+    "Replace BACKUP_STORAGE_SERVICE_KEY with this project's server service_role JWT or sb_secret_ key",
+    "Run a new deployment of only the separate backup project; verify both database and Storage before merge"
+  ]
+}

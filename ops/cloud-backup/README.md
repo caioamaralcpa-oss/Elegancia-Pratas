@@ -1,7 +1,7 @@
 # Backup privado da Elegância Pratas
 
-**Estado: preparado e testado com dados sintéticos; nenhum backup dos dados reais foi criado ainda.**
-O usuário delegou os três passos de backup, mas informou que a conexão/senha está salva no WhatsApp. Não há conexão do WhatsApp disponível nesta sessão; os conectores atuais também não revelam a chave sensível de produção da Vercel.
+**Estado em 11/11/2026: rotinas preparadas e testadas; nenhum backup real concluído. Merge do PR 12 continua bloqueado.**
+O usuário autorizou a execução dos backups. As credenciais foram cadastradas como Sensitive no projeto separado, mas as verificações identificaram conexão PostgreSQL de outro projeto e uma chave de Storage de formato não reconhecido. As senhas/chaves não foram exibidas. A existência das variáveis não equivale a uma cópia concluída.
 
 ## Ambiente separado
 
@@ -13,14 +13,14 @@ O usuário delegou os três passos de backup, mas informou que a conexão/senha 
 - A implantação da loja, o PR 12, seus diretórios protegidos, banco, RPCs, permissões e variáveis de ambiente permanecem inalterados por esta preparação.
 - Nenhum dado real ou credencial foi salvo no repositório nem na máquina do usuário.
 
-## Única etapa pendente de acesso
+## Correções de acesso pendentes
 
-No link acima, criar as duas variáveis **somente no projeto elegancia-backup-privado**, ambiente Production, marcadas como **Sensitive**:
+No link acima, corrigir as duas variáveis existentes **somente no projeto elegancia-backup-privado**, ambiente Production, marcadas como **Sensitive**:
 
 | Nome | Conteúdo |
 | --- | --- |
-| BACKUP_DATABASE_URL | Conexão PostgreSQL completa, com a senha, do projeto da Elegância. Usar Supabase → Connect → Session pooler, porta 5432, ou a conexão direta acessível. Não usar a URL HTTP da API, chave anon ou pooler de transações. |
-| BACKUP_STORAGE_SERVICE_KEY | A chave de servidor service_role do mesmo Supabase, usada para ler as fotos privadas. |
+| BACKUP_DATABASE_URL | Conexão PostgreSQL completa, com a senha, do projeto da Elegância. Usar Supabase → Connect → Session pooler, porta 5432, do projeto sltohhqejguauhanjhfj. O host direto foi confirmado, mas o teste no ambiente de backup retornou ENETUNREACH por ser IPv6; não usar esse caminho neste ambiente. Não usar a URL HTTP da API, chave anon ou pooler de transações. |
+| BACKUP_STORAGE_SERVICE_KEY | A chave de servidor service_role (JWT) ou sb_secret_ do mesmo Supabase, usada para ler as fotos privadas. Não usar chave anon/publicável, senha ou URL de conexão. |
 
 As credenciais devem ser cadastradas diretamente no painel seguro da Vercel, usando o salvamento do usuário; não colar no chat, no código, em links públicos ou em documentos do repositório. Não redefinir a senha do banco para esta tarefa sem uma decisão separada.
 
@@ -54,6 +54,29 @@ Validação da rotina: PostgreSQL 17.11 em ambiente isolado na nuvem, dois teste
 Dependências fixadas com lockfile: @vercel/sandbox 3.9.1, @vercel/blob 2.9.0, pg 8.23.1. Foi aplicado override de Zod 4.6.6 à ferramenta de backup para corrigir o alerta da dependência transitiva; npm audit final informou **0 vulnerabilidades**. Nenhuma dependência da loja foi alterada.
 
 A prova de armazenamento usa um objeto sintético temporário, confere leitura autenticada/negação sem autenticação e remove apenas esse próprio objeto do projeto separado. Não exporta nenhum dado da produção e não equivale a um backup concluído.
+
+
+## Execuções e bloqueios em 11/11/2026
+
+- A conexão PostgreSQL cadastrada passou na validação sintática, mas a proteção de origem retornou WRONG_SOURCE_PROJECT antes de conectar ao banco (deployment dpl_HfeL9xqShjc58C6YDfa6f8Jobzfs). Não foi testada a senha contra outro projeto.
+- O host oficial foi confirmado pelo conector Supabase e pela URL pública configurada na loja. O teste de rede isolado do endereço direto encontrou apenas IPv6 e retornou ENETUNREACH, sem tentar autenticação.
+- O conector atual não fornece o host Session pooler, nem permite ler as variáveis Sensitive. Esse host deve ser copiado de Connect no projeto correto; não pode ser deduzido a partir da região.
+- A execução independente de Storage foi interrompida na etapa initialize: INVALID_STORAGE_CREDENTIAL. A classificação segura retornou formato unrecognized, sem revelar o valor e antes de fazer solicitações à origem. Remover aspas, espaços ou uma atribuição reconhecida não resolveu o valor cadastrado.
+- As cinco verificações da rotina independente passaram no build de produção isolado: reconstrução de bytes, rejeição de corrupção, projeto/caminhos duplicados/inválidos, tamanho/ETag/alterações concorrentes e tratamento de invólucros de credenciais. Instalação com lockfile: 0 vulnerabilidades.
+- Deployment de evidência: dpl_Am9UVtJepBbBuBsKzUU6qcQPuUoc. O build terminou com erro porque a credencial real não passou na validação; testes aprovados não significam backup concluído.
+- Blob privado conferido novamente: 0 objetos e 0 bytes. Produção oficial segue READY em c771eeaa, deployment dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN. PR 12 permanece rascunho e sem merge.
+
+## Cópia independente das imagens
+
+storage-only.mjs permite copiar o Storage sem depender da conexão PostgreSQL. Executar exclusivamente no projeto de backup, com buildCommand definido como:
+
+`node --check storage-only.mjs && node --test storage-only.test.mjs && node storage-only.mjs`
+
+A rotina lista todos os buckets e percorre as pastas com paginação, baixa cada arquivo por leitura e verifica tamanho, ETag MD5 aplicável e SHA-256. Repete o inventário para detectar mudanças durante a cópia. Nomes originais e configurações dos buckets ficam no pacote JSON comprimido; as credenciais não integram o pacote.
+
+O pacote é enviado somente ao Blob privado. A cópia é baixada, descomprimida e cada arquivo é reconstruído/verificado; o acesso anônimo deve ser negado. VERIFIED.json é gravado apenas depois dessas verificações e também tem sua leitura conferida. Sua marcação contém kind=storage_only e databaseBackupIncluded=false.
+
+Uma cópia independente das imagens **não atende sozinha o requisito de backup do banco e do Storage**. Só liberar a etapa seguinte quando os dois estiverem concluídos e conferidos. Não restaurar imagens nem banco em produção para testar. Nenhuma biblioteca adicional foi necessária para essa rotina.
 
 ## Recuperação e limites
 
