@@ -1,8 +1,8 @@
 # Fase 0 — preparação de segurança do PR 12
 
-**Situação:** verificações técnicas concluídas; aguardando a execução e verificação dos backups. Nenhum merge, deploy de produção, migração, alteração de ambiente ou gravação no banco/Storage foi realizado nesta fase.
+**Situação em 11/11/2026:** verificações técnicas e backups do banco/Storage concluídos e verificados. Nenhum merge, deploy de produção da loja, migração ou gravação na origem foi realizado. O backup foi executado em projeto separado na nuvem.
 
-O usuário autorizou a execução da Fase 0 e informou nesta conversa que **ainda precisa fazer os backups**. O item 5 da Fase 0 do documento de trabalho exige aguardar essa confirmação antes do merge.
+O usuário autorizou a Fase 0 e depois delegou a execução dos backups ao assistente. A conexão atualizada autenticou e a cópia completa foi verificada em **11/11/2026, 18:51:28 de Brasília**, atendendo ao requisito de banco e Storage antes do merge. A execução não antecipou a publicação da loja.
 
 ## Escopo verificado
 
@@ -47,36 +47,40 @@ Evidências: [JSON da preparação](quality/phase0-preflight.json).
 
 [Plano de rollback de uma página](PLANO-ROLLBACK-PR12.md): retorno imediato na Vercel, reversão do commit de merge no GitHub e verificação por leitura.
 
-## Checklist de backup — a concluir antes do merge
+## Checklist de backup — concluído em 11/11/2026
 
-Manter as cópias em armazenamento seguro na nuvem, separado do projeto de produção, conforme a preferência de não guardar o sistema ou os dados nesta máquina. Não colocar backups, fotos privadas ou credenciais no repositório público.
+- [x] **Projeto correto:** Supabase EleganciaPratas, sltohhqejguauhanjhfj; usuário/host validados antes da exportação.
+- [x] **Banco:** exportação lógica PostgreSQL custom concluída, com snapshot repeatable read/read only; roles sem senhas e contagens de 51 tabelas no manifest. Archive não vazio e analisado por pg_restore --list.
+- [x] **Storage:** 66 arquivos copiados, preservando nomes/caminhos e configurações dos dois buckets: jewelry-identification (65 arquivos, 2.955.876 bytes, privado) e product-images (1 arquivo, 69.740 bytes, público).
+- [x] **Integridade:** tamanho/ETag MD5 aplicável/SHA-256 dos arquivos verificados; pacote completo privado baixado e conferido por tamanho/SHA-256; acesso anônimo negado. Não houve restauração em produção.
+- [x] **Disponibilidade:** Blob privado separado elegancia-backups-privados, ligado somente ao executor elegancia-backup-privado, com pacote e VERIFIED.json. A rotina não exclui as cópias automaticamente.
+- [x] **Registro da execução:** identificação, horários, contagens e checksum publicados no relatório, sem dados de clientes ou credenciais.
 
-- [ ] **Projeto correto:** confirmar no Supabase o projeto usado pela loja; anotar o identificador, a data/hora de corte e o responsável. Não compartilhar senhas ou chaves nesta conversa.
-- [ ] **Banco:** em Supabase → projeto → Database → Backups, conferir o backup recente, o horário e a retenção. Se não houver backup disponível no plano, providenciar uma exportação lógica completa em ambiente de backup na nuvem; CSV de uma tabela não basta. Guardar schema, funções/políticas, dados e informações necessárias de permissões/roles para recuperação, de acordo com o procedimento do Supabase.
-- [ ] **Storage:** copiar separadamente todos os objetos, preservando nomes e caminhos, incluindo os buckets `product-images` (fotos comerciais) e `jewelry-identification` (identificação privada), além de qualquer outro bucket existente. Esses nomes foram identificados no código; o inventário real deve ser confirmado no projeto. Registrar configuração dos buckets e políticas sem tornar imagens privadas públicas.
-- [ ] **Integridade:** registrar quantidade e tamanho total por bucket e conferir amostras das cópias; para a exportação do banco, verificar que os arquivos não estão vazios e guardar seus checksums. Não restaurar nem sobrescrever produção para testar o backup.
-- [ ] **Disponibilidade:** conferir que a cópia está concluída, protegida e acessível ao responsável pela recuperação, com retenção suficiente até o encerramento da implantação.
-- [ ] **Confirmação:** informar nesta conversa que os backups **do banco e do Storage** estão concluídos, com horário e identificação da cópia, sem anexar dados de clientes ou credenciais.
+Pacote completo: **3.172.388 bytes**. Snapshot: **21:51:07 UTC**; conclusão: **21:51:28 UTC** (18:51:28 de Brasília). Execução: `2026-11-11T21-51-07.696Z-cd530846-b2ef-4e83-9762-9b8446c61e37`; deployment executor `dpl_8qhXPbei6JxCSGoE6vYoo8UoRjzt`, READY.
 
-O Supabase esclarece que o backup do banco **não inclui os objetos do Storage**; o backup de fotos precisa ser separado. Os backups automáticos e sua retenção dependem do plano. [Banco e limites](https://supabase.com/docs/guides/platform/backups) · [Exportação e recuperação](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+SHA-256: `fff2ee3326c7935a1b14088ef34d5ed0d7af9348f71e35e68c05e6abb08a4e30`.
+
+Há também uma cópia independente das imagens, verificada às 18:41:18. As duas execuções deixaram 4 objetos e 6.237.931 bytes no Blob privado, incluindo as confirmações. Nenhum código ou dado foi salvo na máquina do usuário.
+
+[Relatório e localização das cópias](https://github.com/caioamaralcpa-oss/Elegancia-Pratas/blob/ops/backup-seguro/ops/cloud-backup/README.md) · [Evidência da execução](https://github.com/caioamaralcpa-oss/Elegancia-Pratas/blob/ops/backup-seguro/ops/cloud-backup/execution-status-2026-11-11.json).
+
+**Limite:** o dump real foi analisado e o pacote privado foi conferido por checksum; não foi feita restauração integral dos dados reais em outro banco. A restauração sintética anterior não substitui um ensaio integral de recuperação da produção.
 
 ## O que falta e como validar
 
-**Pendente agora:** os dois backups e a confirmação do usuário. Nenhum backup foi criado ou presumido por esta auditoria.
+**Preparação de backup concluída:** banco e Storage copiados e verificados por execução real na nuvem. Não restam pendências de credenciais para essa cópia.
 
 **Reservado para a Fase 1:** merge commit, acompanhamento do deploy READY, logs e testes autenticados somente por leitura, incluindo comparação dos valores conhecidos com a versão anterior. Isso não foi antecipado.
 
 Para revisar esta fase: abrir o PR e comparar os arquivos com a base; conferir o JSON das quatro execuções; abrir o deployment preservado no painel Vercel e consultar o plano de retorno. Não usar botões de salvar, publicar, ajustar saldo ou arrastar coleções durante a revisão.
 
-**Portão mantido fechado para produção enquanto os backups estiverem pendentes.** Não é necessário repetir a aprovação já dada para executar estes preparativos.
+**Requisito de backup cumprido.** A publicação continua separada desta execução e deve seguir o processo de fases definido pelo usuário. Não é necessário repetir a aprovação já dada para os preparativos.
 
 
-## Execução dos backups delegada ao assistente
+## Execução delegada ao assistente
 
-O usuário solicitou que o assistente execute os três passos de backup e informou que a conexão/senha está salva no WhatsApp. Foram confirmados o projeto Supabase EleganciaPratas e o inventário real: 65 objetos privados em jewelry-identification (2955876 bytes) e 1 público em product-images (69740 bytes). Não houve exportação dos dados reais.
+A execução foi feita exclusivamente pelo projeto de backup separado, com credenciais Sensitive/Production fornecidas pelo usuário. Após corrigir a conexão e validar a CA oficial do Supabase, a autenticação e a exportação funcionaram.
 
-Foi preparado o projeto Vercel separado **elegancia-backup-privado**, com Blob privado próprio, sem alterar configurações da loja. A rotina passou em dois testes de exportação/restauração sintética e proteção de integridade; auditoria de dependências final com zero vulnerabilidades. Falta cadastrar as credenciais de exportação no ambiente seguro do projeto separado; a chave sensível da loja não é revelada pelos conectores atuais e não há WhatsApp conectado nesta sessão.
+Na execução completa: 5 testes de ocultação de dados sensíveis em erros + 4 de headers/CA aprovados, 0 falhas e 0 vulnerabilidades no npm audit. A cópia independente das imagens passou em 5 testes e verificou a reconstrução de todos os arquivos depois da leitura privada.
 
-[Rotina, evidências e instruções](https://github.com/caioamaralcpa-oss/Elegancia-Pratas/blob/ops/backup-seguro/ops/cloud-backup/README.md) · [Cadastro seguro no projeto de backup](https://vercel.com/99caio/elegancia-backup-privado/settings/environment-variables).
-
-**Os backups de banco e Storage continuam pendentes. O merge não está liberado.**
+Produção oficial confirmada em `dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN`, READY, commit `c771eeaa`. O PR 12 permanece rascunho e sem merge. Não foram alterados lib/, supabase/, app/api/, fórmulas, RPCs ou validações da loja.
