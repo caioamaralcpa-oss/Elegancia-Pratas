@@ -1,10 +1,34 @@
 {
-  "checkedAt": "2026-11-11T21:46:20Z",
-  "status": "storage_verified_database_authentication_blocked",
+  "checkedAt": "2026-11-11T21:51:53Z",
+  "status": "database_and_storage_verified",
+  "backupsCompleted": true,
   "sourceProject": "sltohhqejguauhanjhfj",
   "sourceWrites": 0,
   "localDataSaved": false,
-  "storage": {
+  "fullBackup": {
+    "status": "verified",
+    "project": "sltohhqejguauhanjhfj",
+    "runId": "2026-11-11T21-51-07.696Z-cd530846-b2ef-4e83-9762-9b8446c61e37",
+    "snapshotAt": "2026-11-11T21:51:07.811Z",
+    "completedAt": "2026-11-11T21:51:28.934Z",
+    "files": 66,
+    "sourceFileBytes": 3025616,
+    "tables": 51,
+    "archiveBytes": 3172388,
+    "sha256": "fff2ee3326c7935a1b14088ef34d5ed0d7af9348f71e35e68c05e6abb08a4e30",
+    "privateStorage": true,
+    "sourceWrites": 0,
+    "pathname": "sltohhqejguauhanjhfj/2026-11-11T21-51-07.696Z-cd530846-b2ef-4e83-9762-9b8446c61e37/backup.tar.gz",
+    "restoreTest": "Archive parsed with pg_restore --list; production was not restored",
+    "deployment": "dpl_8qhXPbei6JxCSGoE6vYoo8UoRjzt",
+    "deploymentState": "READY",
+    "databaseIncluded": true,
+    "rolesWithoutPasswordsIncluded": true,
+    "anonymousAccessDenied": true,
+    "verification": "pg_restore --list before packaging; private cloud readback size and SHA-256 match",
+    "fullRealDataRestorePerformed": false
+  },
+  "independentStorage": {
     "status": "verified",
     "kind": "storage_only",
     "databaseBackupIncluded": false,
@@ -23,37 +47,18 @@
     "restoreTest": "Private cloud archive downloaded, decompressed; every object size and SHA-256 verified",
     "deployment": "dpl_4dyJjbVNYna1yysYguvzwUJwjQ5x"
   },
-  "database": {
-    "status": "not_backed_up",
-    "deployment": "dpl_Fms8W76rWxT7PvR5uWb6Toxivx6R",
-    "stage": "connect",
-    "code": "28P01",
-    "tlsVerification": "passed with official pinned Supabase Root 2021 CA",
-    "passwordAuthenticated": false,
-    "dumpStarted": false,
-    "formatInspection": {
-      "deployment": "dpl_2scKGCnKQ1b67qSBqUWxJR6H4LLa",
-      "sourceConnectionAttempted": false,
-      "expectedPoolerUser": true,
-      "sessionPort5432": true,
-      "passwordPlaceholder": false,
-      "outerPasswordBrackets": false,
-      "outerPasswordQuotes": false,
-      "outerPasswordWhitespace": false
-    }
-  },
-  "verification": {
-    "storageSyntheticTests": 5,
-    "safeErrorTests": 5,
-    "storageAuthAndCaTests": 4,
-    "failedTests": 0,
+  "tests": {
+    "fullBackupSafeErrorTests": 5,
+    "fullBackupAuthCaTests": 4,
+    "independentStorageTests": 5,
+    "failed": 0,
     "npmAuditVulnerabilities": 0
   },
   "privateBlob": {
     "id": "store_yroVHhRBhJB7TcEo",
     "access": "private",
-    "objects": 2,
-    "bytes": 3064899
+    "objects": 4,
+    "bytes": 6237931
   },
   "production": {
     "deployment": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
@@ -62,5 +67,9 @@
     "pr12Draft": true,
     "pr12Merged": false
   },
-  "requiredAction": "Verify only the original database password in BACKUP_DATABASE_URL; keep Production/Sensitive. Storage key already works. No password reset authorized."
+  "history": {
+    "previousDatabaseError": "28P01; resolved after user updated database connection",
+    "databasePasswordResetByAssistant": false
+  },
+  "nextStep": "Resume the staged redesign deployment process under existing user phase approvals; no production merge or deployment performed by this backup execution."
 }

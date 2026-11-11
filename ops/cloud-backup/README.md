@@ -1,111 +1,103 @@
 # Backup privado da Elegância Pratas
 
-**Estado em 11/11/2026, 18:46 (Brasília): Storage copiado e verificado; backup do banco pendente por autenticação recusada. Merge do PR 12 continua bloqueado.**
+**Estado em 11/11/2026: backups do banco e do Storage concluídos e verificados.**
 
-O usuário atualizou as duas configurações e autorizou a execução. A cópia das imagens foi concluída e verificada na nuvem privada. O banco agora usa o usuário esperado do projeto, Session pooler na porta 5432 e validação TLS com a CA oficial; o servidor recusou a autenticação com 28P01. Nenhuma senha foi exibida nem redefinida. Nenhum dado real ou código foi salvo na máquina do usuário.
+Conclusão do pacote completo: **18:51:28 de Brasília (21:51:28 UTC)**. A conexão atualizada pelo usuário autenticou com sucesso. Não houve gravação na origem, restauração em produção, migração ou alteração de configuração da loja. O PR 12 permanece rascunho e sem merge; a implantação oficial segue em c771eeaa.
 
-## Ambiente separado
+## Onde estão as cópias
 
-- Projeto Vercel: `elegancia-backup-privado` (`prj_vC695Zpqu6c5Qe6vInSCKZ9OItdL`).
-- [Cadastrar credenciais](https://vercel.com/99caio/elegancia-backup-privado/settings/environment-variables).
-- Armazenamento Vercel Blob: `elegancia-backups-privados` (`store_yroVHhRBhJB7TcEo`), acesso **private**, ligado somente ao projeto de backup.
-- Projeto Supabase de origem fixado: `sltohhqejguauhanjhfj`.
-- Proteção Vercel Authentication em todos os endereços do projeto de backup; a página não expõe arquivos nem executa backups por requisição HTTP.
-- A implantação da loja, o PR 12, seus diretórios protegidos, banco, RPCs, permissões e variáveis de ambiente permanecem inalterados por esta preparação.
-- Nenhum dado real ou credencial foi salvo no repositório nem na máquina do usuário.
+- Projeto de origem: Supabase **sltohhqejguauhanjhfj**, EleganciaPratas.
+- Projeto executor separado: Vercel **elegancia-backup-privado** (prj_vC695Zpqu6c5Qe6vInSCKZ9OItdL).
+- [Painel do projeto de backup](https://vercel.com/99caio/elegancia-backup-privado).
+- Blob **elegancia-backups-privados** (store_yroVHhRBhJB7TcEo), região iad1, acesso **private**, ligado somente ao projeto de backup.
+- Arquivos não publicados no endereço da implantação. Vercel Authentication protege os endereços do executor.
+- Nenhum código da loja, dado real, backup ou credencial foi salvo na máquina do usuário. O repositório guarda somente código da ferramenta e evidências sem conteúdo de clientes ou segredos.
 
-## Única correção pendente
+## Identificação do backup completo
 
-No [painel seguro do projeto de backup](https://vercel.com/99caio/elegancia-backup-privado/settings/environment-variables), conferir a senha original do banco dentro de **BACKUP_DATABASE_URL**, preservando Sensitive e Production. A autenticação foi recusada; o formato, usuário, porta e ausência de texto de exemplo foram conferidos. Não redefinir a senha do banco nem publicar seu valor no chat/repositório. Se houver caracteres reservados, a senha precisa estar codificada corretamente na URI.
+| Campo | Valor medido |
+| --- | --- |
+| Execução | 2026-11-11T21-51-07.696Z-cd530846-b2ef-4e83-9762-9b8446c61e37 |
+| Deployment executor | dpl_8qhXPbei6JxCSGoE6vYoo8UoRjzt — READY |
+| Snapshot do banco | 2026-11-11T21:51:07.811Z |
+| Conclusão | 2026-11-11T21:51:28.934Z |
+| Tabelas com contagem no manifest | 51 |
+| Objetos de Storage copiados | 66 |
+| Bytes dos objetos de origem | 3025616 |
+| Bytes do pacote completo | 3172388 |
+| Gravações na origem pela rotina | 0 |
 
-**BACKUP_STORAGE_SERVICE_KEY já foi validada na execução real do Storage e não precisa ser alterada.**
+Caminho no armazenamento privado:
 
-Após corrigir a conexão, executar uma nova implantação somente do projeto de backup com os arquivos desta pasta, npm ci e npm run backup. Uma edição de variável não dispara a cópia automaticamente. A implantação oficial da loja não deve ser usada para executar o backup.
+`sltohhqejguauhanjhfj/2026-11-11T21-51-07.696Z-cd530846-b2ef-4e83-9762-9b8446c61e37/backup.tar.gz`
 
-## Cópia de Storage concluída
+Confirmação da execução: VERIFIED.json na mesma pasta.
 
-- Conclusão: **11/11/2026, 18:41:18 (Brasília)**, 21:41:18 UTC.
-- Identificação: `2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9`.
-- Deployment: `dpl_4dyJjbVNYna1yysYguvzwUJwjQ5x`.
-- **66 arquivos em 2 buckets; 3.025.616 bytes de arquivos de origem.**
-- Arquivo comprimido privado: **3064163 bytes**.
-- SHA-256: `ef62fc2f7dca9330e66fa8cfc63de169d000ee31618e900c7b79e4bbd929946a`.
-- Caminho no Blob privado: `sltohhqejguauhanjhfj/storage-only/2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9/storage-backup.json.gz`.
-- Arquivo de confirmação: VERIFIED.json na mesma pasta.
-- Conferência realizada: leitura autenticada da cópia privada, descompressão, reconstrução e verificação de tamanho/SHA-256 de todos os arquivos; acesso anônimo negado.
-- O inventário antes/depois da cópia foi comparado; caminhos e configurações dos buckets foram preservados no pacote.
-- Blob privado conferido com 2 objetos, 3.064.899 bytes, incluindo pacote e confirmação.
-- **databaseBackupIncluded=false:** esta cópia não contém um dump do banco; não libera o merge sozinha.
+SHA-256 do pacote:
 
-## Correções da ferramenta de backup
+`fff2ee3326c7935a1b14088ef34d5ed0d7af9348f71e35e68c05e6abb08a4e30`
 
-A rotina completa foi ajustada para aceitar chaves modernas sb_secret_ usando somente o header apikey; as chaves legadas mantêm o Bearer correspondente. Somente a ferramenta em ops/cloud-backup foi alterada; não houve alteração em lib/, supabase/, app/api/ ou dependências da loja.
+O pacote backup.tar.gz contém database.dump, roles.sql, manifest.json e objects/. O dump usa o formato custom do PostgreSQL; roles.sql não inclui senhas. O manifest preserva contagens de tabelas, configurações dos buckets, nomes/caminhos originais, tamanhos e checksums. Os arquivos físicos de imagens recebem nomes hash para impedir travessia de diretórios.
 
-A CA pública do Supabase foi obtida via HTTPS no endereço configurado pelo próprio [Studio oficial](https://github.com/supabase/supabase/blob/f38928ad90f1c2bd44f668411fb1d2312754d258/apps/studio/hooks/custom-content/custom-content.json):
-https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt
+Contagens de tabelas abrangem public, auth, storage e supabase_migrations. Esse número não é uma contagem declarada de todas as tabelas internas do PostgreSQL.
 
-O arquivo público supabase-ca.crt acompanha a ferramenta. Antes da conexão são conferidos CA, autoassinatura, validade e fingerprint SHA-256 **807025AD50D4ED219D2C9C7D299C004F824EB00CF7F65AFEF607D07B72E6CAFA**. Node mantém rejectUnauthorized=true; pg_dump usa verify-full e a mesma CA. Não há desativação de validação TLS nem mudança na configuração SSL do servidor de produção.
+## Conferências executadas
 
-Validação no build isolado: **5 testes de redação segura + 4 testes de headers/CA aprovados**, incluindo rejeição de CA incorreta e vencida; npm audit **0 vulnerabilidades**. A rotina independente teve **5 testes aprovados** antes da cópia real.
+1. A origem é validada contra o projeto esperado antes de conectar. A autenticação funcionou usando o Session pooler e a senha atualizada, sem exibir seu conteúdo.
+2. Sessão PostgreSQL repeatable read e read only, com snapshot exportado para pg_dump. As ferramentas também recebem default_transaction_read_only=on e limites de espera.
+3. database.dump não vazio e aceito por pg_restore --list; exportação de roles sem senhas concluída.
+4. Todos os 66 objetos do Storage copiados. Tamanho, ETag MD5 quando aplicável e SHA-256 conferidos; buckets privados preservados como privados no manifest.
+5. Pacote enviado ao Blob privado, baixado de volta e conferido por tamanho e SHA-256. O acesso sem autenticação foi negado.
+6. VERIFIED.json gravado apenas depois dessas verificações. O ambiente temporário é encerrado ao terminar.
 
-Tentativa completa com CA corrigida: `dpl_Fms8W76rWxT7PvR5uWb6Toxivx6R`, resultado **connect / 28P01**. A consulta de formato subsequente (`dpl_2scKGCnKQ1b67qSBqUWxJR6H4LLa`) não fez conexão e confirmou usuário postgres do projeto esperado, porta 5432, banco postgres e ausência de placeholders, colchetes, aspas ou espaços externos na senha. O dump do banco não iniciou.
+Inventário conferido antes da execução:
 
-## O que a rotina faz quando houver credenciais
-
-1. Abre uma sessão PostgreSQL com transação repeatable read e read only. As ferramentas pg_dump/pg_dumpall também recebem default_transaction_read_only=on; não há SQL de escrita contra a origem.
-2. Exporta o snapshot para pg_dump, produzindo um archive custom consistente; guarda roles sem senhas e confere o archive com pg_restore --list.
-3. Lê o inventário de todos os buckets/objetos no mesmo snapshot. Copia os bytes pelo Storage API, conferindo tamanho, ETag MD5 quando aplicável e SHA-256. Os nomes originais ficam no manifest; os arquivos físicos usam nomes hash para impedir travessia de diretórios.
-4. Empacota banco, roles, manifest e objetos; grava o pacote no Blob privado; baixa a cópia e compara tamanho e SHA-256. Confere também que acesso sem autenticação é negado.
-5. Só então grava VERIFIED.json com contagens, horário, caminho e checksum. Se qualquer etapa falhar, não registra sucesso e não libera merge.
-6. Encerra o ambiente temporário; as cópias ficam no armazenamento privado persistente. As credenciais são usadas apenas no ambiente do processo e não entram no pacote.
-
-A rotina não restaura produção, não muda preços/saldos, não publica joias e não executa migrações. A confirmação de um backup não autoriza avançar de fase sem observar o portão definido pelo usuário.
-
-## Evidências de preparação em 10/11/2026
-
-Inventário real, consultado somente por leitura:
-
-| Bucket | Visibilidade | Objetos | Bytes |
+| Bucket | Visibilidade na origem | Objetos | Bytes |
 | --- | --- | ---: | ---: |
 | jewelry-identification | Privado | 65 | 2955876 |
 | product-images | Público | 1 | 69740 |
 | Total | — | 66 | 3025616 |
 
-Isso é um inventário, não uma cópia e não uma conferência de integridade dos arquivos reais.
-
-Validação da rotina: PostgreSQL 17.11 em ambiente isolado na nuvem, dois testes aprovados. Foram testados os bloqueios de origem incorreta, espera por credenciais, exportação, restauração de banco sintético, preservação de valores, impedimento de escrita pela sessão de leitura, conferência de arquivos e rejeição de readback corrompido.
-
-Dependências fixadas com lockfile: @vercel/sandbox 3.9.1, @vercel/blob 2.9.0, pg 8.23.1. Foi aplicado override de Zod 4.6.6 à ferramenta de backup para corrigir o alerta da dependência transitiva; npm audit final informou **0 vulnerabilidades**. Nenhuma dependência da loja foi alterada.
-
-A prova de armazenamento usa um objeto sintético temporário, confere leitura autenticada/negação sem autenticação e remove apenas esse próprio objeto do projeto separado. Não exporta nenhum dado da produção e não equivale a um backup concluído.
-
-
-## Histórico anterior às correções de credenciais em 11/11/2026
-
-- A conexão PostgreSQL cadastrada passou na validação sintática, mas a proteção de origem retornou WRONG_SOURCE_PROJECT antes de conectar ao banco (deployment dpl_HfeL9xqShjc58C6YDfa6f8Jobzfs). Não foi testada a senha contra outro projeto.
-- O host oficial foi confirmado pelo conector Supabase e pela URL pública configurada na loja. O teste de rede isolado do endereço direto encontrou apenas IPv6 e retornou ENETUNREACH, sem tentar autenticação.
-- O conector atual não fornece o host Session pooler, nem permite ler as variáveis Sensitive. Esse host deve ser copiado de Connect no projeto correto; não pode ser deduzido a partir da região.
-- A execução independente de Storage foi interrompida na etapa initialize: INVALID_STORAGE_CREDENTIAL. A classificação segura retornou formato unrecognized, sem revelar o valor e antes de fazer solicitações à origem. Remover aspas, espaços ou uma atribuição reconhecida não resolveu o valor cadastrado.
-- As cinco verificações da rotina independente passaram no build de produção isolado: reconstrução de bytes, rejeição de corrupção, projeto/caminhos duplicados/inválidos, tamanho/ETag/alterações concorrentes e tratamento de invólucros de credenciais. Instalação com lockfile: 0 vulnerabilidades.
-- Deployment de evidência: dpl_Am9UVtJepBbBuBsKzUU6qcQPuUoc. O build terminou com erro porque a credencial real não passou na validação; testes aprovados não significam backup concluído.
-- Blob privado conferido novamente: 0 objetos e 0 bytes. Produção oficial segue READY em c771eeaa, deployment dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN. PR 12 permanece rascunho e sem merge.
+O inventário dos arquivos é lido no snapshot do banco. Os bytes do Storage não participam de uma transação PostgreSQL; alterações concorrentes que resultem em diferença de tamanho/ETag interrompem a rotina, sem sucesso presumido.
 
 ## Cópia independente das imagens
 
-storage-only.mjs permite copiar o Storage sem depender da conexão PostgreSQL. Executar exclusivamente no projeto de backup, com buildCommand definido como:
+Uma cópia anterior de Storage foi concluída às **18:41:18 de Brasília**, sem depender do banco:
 
-`node --check storage-only.mjs && node --test storage-only.test.mjs && node storage-only.mjs`
+- Execução: `2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9`.
+- Deployment: `dpl_4dyJjbVNYna1yysYguvzwUJwjQ5x`.
+- Caminho: `sltohhqejguauhanjhfj/storage-only/2026-11-11T21-40-52.716Z-654b6746-a70a-40d9-b73a-864006842cd9/storage-backup.json.gz`.
+- Pacote JSON comprimido: 3064163 bytes, 66 arquivos, 2 buckets.
+- SHA-256: `ef62fc2f7dca9330e66fa8cfc63de169d000ee31618e900c7b79e4bbd929946a`.
+- Arquivo privado baixado, descomprimido e todos os objetos reconstruídos/verificados. Inventário antes/depois comparado; acesso anônimo negado; confirmação também lida de volta.
+- kind=storage_only e databaseBackupIncluded=false. Essa cópia isolada não substitui o pacote completo.
 
-A rotina lista todos os buckets e percorre as pastas com paginação, baixa cada arquivo por leitura e verifica tamanho, ETag MD5 aplicável e SHA-256. Repete o inventário para detectar mudanças durante a cópia. Nomes originais e configurações dos buckets ficam no pacote JSON comprimido; as credenciais não integram o pacote.
+Após as duas execuções, o Blob privado foi consultado e retornou **4 objetos e 6.237.931 bytes**, incluindo os dois pacotes e suas confirmações.
 
-O pacote é enviado somente ao Blob privado. A cópia é baixada, descomprimida e cada arquivo é reconstruído/verificado; o acesso anônimo deve ser negado. VERIFIED.json é gravado apenas depois dessas verificações e também tem sua leitura conferida. Sua marcação contém kind=storage_only e databaseBackupIncluded=false.
+## Segurança da conexão e dependências
 
-Uma cópia independente das imagens **não atende sozinha o requisito de backup do banco e do Storage**. Só liberar a etapa seguinte quando os dois estiverem concluídos e conferidos. Não restaurar imagens nem banco em produção para testar. Nenhuma biblioteca adicional foi necessária para essa rotina.
+A CA pública supabase-ca.crt foi obtida via HTTPS no endereço configurado pelo [Studio oficial](https://github.com/supabase/supabase/blob/f38928ad90f1c2bd44f668411fb1d2312754d258/apps/studio/hooks/custom-content/custom-content.json):
 
-## Recuperação e limites
+https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt
 
-O pacote conterá database.dump, roles.sql, manifest.json e objects/. O manifest preserva bucket, nome original, tamanho e SHA-256 de cada objeto. pg_restore e a recriação dos objetos do Storage devem ser feitos em destino autorizado, preservando o caráter privado de jewelry-identification.
+A rotina confere CA, autoassinatura, validade e fingerprint SHA-256 **807025AD50D4ED219D2C9C7D299C004F824EB00CF7F65AFEF607D07B72E6CAFA**. Node usa rejectUnauthorized=true; pg_dump usa verify-full com a mesma CA. A configuração SSL de produção não foi modificada.
 
-Senhas de roles não integram roles.sql. Configurações externas, chaves de provedores e raízes de criptografia de serviços gerenciados não são substituídas por um dump PostgreSQL; recuperações para outro projeto Supabase exigem as etapas específicas do provedor. A restauração sintética da rotina não prova uma recuperação integral da produção. Qualquer restauração em produção exige autorização própria.
+Chaves sb_secret_ usam apenas o header apikey. Chaves legadas mantêm o Bearer correspondente. Credenciais são usadas somente no processo privado e não entram nos pacotes, páginas, código ou logs.
 
-[Procedimento do Supabase](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) · [pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html) · [Armazenamento privado](https://vercel.com/docs/vercel-blob/private-storage).
+Dependências da ferramenta: @vercel/sandbox 3.9.1, @vercel/blob 2.9.0 e pg 8.23.1; override Zod 4.6.6. Nenhuma dependência da loja foi alterada.
+
+Na execução completa: **5 testes de ocultação de dados sensíveis em erros e 4 de headers/CA aprovados; 0 falhas e 0 vulnerabilidades no npm audit**. Na execução independente: **5 testes aprovados**. A preparação anterior também testou exportação/restauração de banco sintético, preservação de valores, bloqueio de escrita e rejeição de corrupção em ambiente isolado.
+
+## Repetir ou recuperar
+
+Executar novamente somente no projeto de backup, com arquivos desta pasta, npm ci --ignore-scripts e npm run backup. São necessárias BACKUP_DATABASE_URL e BACKUP_STORAGE_SERVICE_KEY como Sensitive/Production, além do token do Blob privado. Não alterar o projeto da loja para fazer backup. A rotina não agenda cópias automáticas.
+
+Para uma cópia independente de imagens: node --check storage-only.mjs && node --test storage-only.test.mjs && node storage-only.mjs, definindo esse comando apenas no executor separado.
+
+Os pacotes ficam no Blob privado sem exclusão automática pela rotina. Preservá-los até o encerramento da implantação; nenhuma cópia real foi removida.
+
+**Limite da verificação real:** o dump foi analisado e seu pacote foi conferido por checksum, mas não foi feita restauração integral dos dados reais em outro banco. A restauração sintética anterior não equivale a um ensaio integral de recuperação da produção. Qualquer recuperação deve usar destino autorizado e preservar o caráter privado de jewelry-identification.
+
+Senhas de roles, chaves de provedores e raízes externas de criptografia não são substituídas por um dump PostgreSQL. Seguir o procedimento do provedor para uma recuperação em outro projeto. Restaurar em produção exige autorização própria.
+
+[Evidência da execução](execution-status-2026-11-11.json) · [Recuperação Supabase](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) · [pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html).
