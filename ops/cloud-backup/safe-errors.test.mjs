@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {safeError} from './safe-errors.mjs';
+test('reports PostgreSQL authentication code without its message',()=>assert.deepEqual(safeError({code:'28P01',message:'password secret-password for user private-user'},'connect'),{stage:'connect',code:'28P01'}));
+test('never emits a connection URL or password in unknown errors',()=>{const r=JSON.stringify(safeError({message:'postgresql://private:secret@db.example/postgres'},'connect'));assert.equal(r.includes('secret'),false);assert.equal(r.includes('postgresql'),false);assert.match(r,/UNCLASSIFIED/);});
+test('rejects arbitrary stage and error strings',()=>assert.deepEqual(safeError({code:'SENSITIVE_PRIVATE_VALUE'},'postgresql://secret'),{stage:'unknown',code:'UNCLASSIFIED'}));
+test('reports an approved TLS cause without exposing request objects',()=>assert.deepEqual(safeError({cause:{code:'SELF_SIGNED_CERT_IN_CHAIN',request:{password:'secret'}}},'connect'),{stage:'connect',code:'SELF_SIGNED_CERT_IN_CHAIN'}));
+test('keeps checksum failures recognizable',()=>assert.deepEqual(safeError(Error('CLOUD_CHECKSUM_MISMATCH'),'cloud_readback'),{stage:'cloud_readback',code:'CLOUD_CHECKSUM_MISMATCH'}));

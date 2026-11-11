@@ -6,6 +6,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import pg from 'pg';
+import { safeError } from './safe-errors.mjs';
 import { put, get } from '@vercel/blob';
 const PROJECT='sltohhqejguauhanjhfj';
 export function validateConnection(value, fixture=false){
@@ -26,24 +27,24 @@ export async function createBackup({databaseUrl,storageKey,adapter,download,fixt
  if(!fixture&&!storageKey)throw Error('MISSING_STORAGE_CREDENTIAL');
  const readOnly='-c default_transaction_read_only=on -c statement_timeout=600000 -c lock_timeout=10000';
  const env={...process.env,PGHOST:u.hostname,PGPORT:u.port||'5432',PGDATABASE:decodeURIComponent(u.pathname.slice(1)),PGUSER:decodeURIComponent(u.username),PGPASSWORD:decodeURIComponent(u.password),PGOPTIONS:readOnly,PGSSLMODE:local?'disable':'verify-full',PGSSLROOTCERT:local?'':'system'};
- const client=new pg.Client({host:env.PGHOST,port:Number(env.PGPORT),database:env.PGDATABASE,user:env.PGUSER,password:env.PGPASSWORD,options:readOnly,ssl:local?false:{rejectUnauthorized:true}});
+ const client=new pg.Client({host:env.PGHOST,port:Number(env.PGPORT),database:env.PGDATABASE,user:env.PGUSER,password:env.PGPASSWORD,options:readOnly,connectionTimeoutMillis:15000,ssl:local?false:{rejectUnauthorized:true}});
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'elegancia-backup-'));
  const dir=path.join(root,'bundle');await fs.mkdir(path.join(dir,'objects'),{recursive:true});
  const runId=new Date().toISOString().replaceAll(':','-')+'-'+randomUUID();
  const manifest={project:PROJECT,runId,startedAt:new Date().toISOString(),snapshotAt:null,sourceWrites:0,tableCounts:[],files:[],buckets:[]};
- let transaction=false;
+ let transaction=false,stage='connect';
  try{
   await client.connect();await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');transaction=true;
-  const snap=(await client.query('select pg_export_snapshot() as id, transaction_timestamp() as at')).rows[0];manifest.snapshotAt=snap.at;
-  manifest.buckets=(await client.query('select id,name,public,file_size_limit,allowed_mime_types from storage.buckets order by id')).rows;
+  stage='snapshot';const snap=(await client.query('select pg_export_snapshot() as id, transaction_timestamp() as at')).rows[0];manifest.snapshotAt=snap.at;
+  stage='inventory';manifest.buckets=(await client.query('select id,name,public,file_size_limit,allowed_mime_types from storage.buckets order by id')).rows;
   const objects=(await client.query('select bucket_id,name,metadata,updated_at from storage.objects order by bucket_id,name')).rows;
   const tables=(await client.query("select schemaname,tablename from pg_tables where schemaname in ('public','auth','storage','supabase_migrations') order by schemaname,tablename")).rows;
-  for(const t of tables){const r=await client.query('select count(*)::text as count from '+ident(t.schemaname)+'.'+ident(t.tablename));manifest.tableCounts.push({...t,count:r.rows[0].count});}
-  await command('pg_dump',['--format=custom','--snapshot='+snap.id,'--file='+path.join(dir,'database.dump')],env,dir);
-  await command('pg_restore',['--list',path.join(dir,'database.dump')],env,dir);
-  await command('pg_dumpall',['--roles-only','--no-role-passwords','--file='+path.join(dir,'roles.sql')],env,dir);
+  stage='row_counts';for(const t of tables){const r=await client.query('select count(*)::text as count from '+ident(t.schemaname)+'.'+ident(t.tablename));manifest.tableCounts.push({...t,count:r.rows[0].count});}
+  stage='database_dump';await command('pg_dump',['--format=custom','--snapshot='+snap.id,'--file='+path.join(dir,'database.dump')],env,dir);
+  stage='archive_check';await command('pg_restore',['--list',path.join(dir,'database.dump')],env,dir);
+  stage='roles_dump';await command('pg_dumpall',['--roles-only','--no-role-passwords','--file='+path.join(dir,'roles.sql')],env,dir);
   const sizes=await fs.stat(path.join(dir,'database.dump'));if(sizes.size<100)throw Error('EMPTY_DATABASE_ARCHIVE');
-  for(const object of objects){
+  stage='storage_download';for(const object of objects){
    const buffer=download?await download(object):Buffer.from(await (await fetch('https://'+PROJECT+'.supabase.co/storage/v1/object/'+encodeURIComponent(object.bucket_id)+'/'+object.name.split('/').map(encodeURIComponent).join('/'),{headers:{apikey:storageKey,Authorization:'Bearer '+storageKey},redirect:'error'}).then(r=>{if(!r.ok)throw Error('STORAGE_DOWNLOAD_FAILED');return r})).arrayBuffer());
    const expected=Number(object.metadata?.size);if(!Number.isSafeInteger(expected)||expected!==buffer.length)throw Error('STORAGE_SIZE_MISMATCH');
    const etag=object.metadata?.eTag??object.metadata?.etag;if(typeof etag==='string'&&/^[a-f0-9]{32}$/i.test(etag.replaceAll('"',''))&&createHash('md5').update(buffer).digest('hex')!==etag.replaceAll('"','').toLowerCase())throw Error('STORAGE_ETAG_MISMATCH');
@@ -53,23 +54,23 @@ export async function createBackup({databaseUrl,storageKey,adapter,download,fixt
   }
   await client.query('COMMIT');transaction=false;
   manifest.completedAt=new Date().toISOString();
-  for(const f of manifest.files)if(sha(await fs.readFile(path.join(dir,f.archivePath)))!==f.sha256)throw Error('LOCAL_FILE_CHECKSUM_MISMATCH');
+  stage='local_integrity';for(const f of manifest.files)if(sha(await fs.readFile(path.join(dir,f.archivePath)))!==f.sha256)throw Error('LOCAL_FILE_CHECKSUM_MISMATCH');
   manifest.databaseBytes=sizes.size;manifest.databaseSha256=sha(await fs.readFile(path.join(dir,'database.dump')));
   manifest.rolesSha256=sha(await fs.readFile(path.join(dir,'roles.sql')));
   await fs.writeFile(path.join(dir,'manifest.json'),JSON.stringify(manifest,null,2),{mode:0o600});
-  const archive=path.join(root,'backup.tar.gz');await command('tar',['-czf',archive,'-C',dir,'.'],env,root);
+  stage='package';const archive=path.join(root,'backup.tar.gz');await command('tar',['-czf',archive,'-C',dir,'.'],env,root);
   const bytes=await fs.readFile(archive),hash=sha(bytes),prefix=PROJECT+'/'+runId;
   const storage=adapter??{put:(name,data)=>put(name,data,{access:'private',addRandomSuffix:false,allowOverwrite:false,contentType:'application/octet-stream'}),read:async name=>{const r=await get(name,{access:'private',useCache:false});if(r?.statusCode!==200)throw Error('CLOUD_READBACK_FAILED');return Buffer.from(await new Response(r.stream).arrayBuffer())}};
-  const uploaded=await storage.put(prefix+'/backup.tar.gz',createReadStream(archive));
-  const restored=await storage.read(uploaded.pathname??prefix+'/backup.tar.gz');
+  stage='cloud_upload';const uploaded=await storage.put(prefix+'/backup.tar.gz',createReadStream(archive));
+  stage='cloud_readback';const restored=await storage.read(uploaded.pathname??prefix+'/backup.tar.gz');
   if(sha(restored)!==hash||restored.length!==bytes.length)throw Error('CLOUD_CHECKSUM_MISMATCH');
-  if(!fixture){const r=await fetch(uploaded.url,{redirect:'manual'});if(r.ok||r.status<400||r.status>=500)throw Error('PRIVATE_ACCESS_CHECK_FAILED');}
+  stage='private_access';if(!fixture){const r=await fetch(uploaded.url,{redirect:'manual'});if(r.ok||r.status<400||r.status>=500)throw Error('PRIVATE_ACCESS_CHECK_FAILED');}
   const summary={status:'verified',project:PROJECT,runId,snapshotAt:manifest.snapshotAt,completedAt:new Date().toISOString(),files:manifest.files.length,sourceFileBytes:manifest.files.reduce((n,f)=>n+f.bytes,0),tables:manifest.tableCounts.length,archiveBytes:bytes.length,sha256:hash,privateStorage:true,sourceWrites:0,pathname:uploaded.pathname??prefix+'/backup.tar.gz',restoreTest:'Archive parsed with pg_restore --list; production was not restored'};
-  await storage.put(prefix+'/VERIFIED.json',Buffer.from(JSON.stringify(summary,null,2)));
+  stage='completion_marker';await storage.put(prefix+'/VERIFIED.json',Buffer.from(JSON.stringify(summary,null,2)));
   return summary;
- }finally{if(transaction)await client.query('ROLLBACK').catch(()=>{});await client.end().catch(()=>{});}
+ }catch(error){const info=safeError(error,stage);throw Object.assign(Error(info.code),{code:info.code,backupStage:info.stage});}finally{if(transaction)await client.query('ROLLBACK').catch(()=>{});await client.end().catch(()=>{});}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{const summary=await createBackup({databaseUrl:process.env.BACKUP_DATABASE_URL,storageKey:process.env.BACKUP_STORAGE_SERVICE_KEY});console.log(JSON.stringify(summary));}
- catch{console.log(JSON.stringify({status:'failed',message:'BACKUP_NOT_COMPLETED; no release approved'}));process.exitCode=1;}
+ catch(error){console.log(JSON.stringify({status:'failed',...safeError(error,error?.backupStage??'validate_connection')}));process.exitCode=1;}
 }

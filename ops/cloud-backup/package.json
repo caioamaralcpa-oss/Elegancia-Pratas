@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "backup": "node backup.mjs",
-    "test": "node --test worker.test.mjs"
+    "test": "node --test worker.test.mjs",
+    "prebackup": "node --check backup.mjs && node --check worker.mjs && node --test safe-errors.test.mjs"
   },
   "dependencies": {
     "@vercel/sandbox": "3.9.1",
