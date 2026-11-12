@@ -92,3 +92,68 @@
 .erp-operation-placeholder{min-height:1200px}.erp-operation-placeholder .erp-insight{min-height:158px}.erp-operation-placeholder .management-card{min-height:280px}
 .jewelry-missing-photos>summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:8px}.jewelry-missing-photos>summary::before{content:'▸'}.jewelry-missing-photos[open]>summary::before{content:'▾'}
 @media(max-width:1200px){.management-topbar .erp-quick-actions{display:none}}
+
+/* Management layout: explicit expanded, collapsed and mobile states. */
+.management-shell .management-layout{grid-template-columns:248px minmax(0,1fr)}
+.management-shell .management-layout .management-sidebar{width:100%;min-width:0;padding:24px 16px;align-items:stretch;gap:16px;overflow-x:hidden}
+.management-shell .management-sidebar .management-brand{justify-content:flex-start;gap:12px;min-width:0}
+.management-shell .management-sidebar .management-brand-name{display:block;min-width:0}
+.management-shell .management-sidebar nav a,.management-shell .management-sidebar-bottom :is(a,button){width:100%;height:auto;min-height:44px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:12px;border-left:0}
+.management-shell .management-sidebar nav a>span,.management-shell .management-sidebar-bottom :is(a,button)>span{display:block;white-space:nowrap}
+.management-shell .management-sidebar .erp-nav-group{display:block;padding:16px 12px 8px}
+.management-shell .management-sidebar nav svg,.management-shell .management-sidebar-bottom svg{flex:0 0 20px;width:20px;height:20px}
+.management-shell .management-sidebar .erp-collapse{display:flex!important;align-items:center;justify-content:flex-start;gap:10px;width:100%;min-height:40px!important;white-space:nowrap}
+.management-shell .management-layout.erp-collapsed{grid-template-columns:76px minmax(0,1fr)}
+.management-shell .management-layout.erp-collapsed .management-sidebar{padding:24px 10px}
+.management-shell .erp-collapsed .management-sidebar :is(.management-brand-name,.erp-nav-group),.management-shell .erp-collapsed .management-sidebar nav a>span,.management-shell .erp-collapsed .management-sidebar-bottom :is(a,button)>span{display:none}
+.management-shell .erp-collapsed .management-sidebar :is(.management-brand,nav a,.erp-collapse),.management-shell .erp-collapsed .management-sidebar-bottom :is(a,button){justify-content:center}
+.management-shell .management-main{min-width:0}
+.management-shell .management-page{width:100%;max-width:1600px;padding:32px clamp(20px,2.5vw,40px) 64px}
+.management-shell .management-topbar{justify-content:flex-start;gap:20px}
+.management-shell .management-topbar>.erp-user-menu{margin-left:auto}
+.management-shell .management-topbar>.erp-search{margin-left:auto}
+.management-shell .erp-page-header>div,.management-shell .management-title-row>div{min-width:0}
+.management-shell .management-badge{display:inline-flex;align-items:center;line-height:1.5;word-break:normal;overflow-wrap:normal}
+.management-shell .jewelry-page .jewelry-table-scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.management-shell .jewelry-page .jewelry-table{width:100%;min-width:1180px;max-width:none;table-layout:auto}
+.management-shell .jewelry-page .jewelry-table :is(th,td){width:auto;padding:14px 16px;vertical-align:middle;word-break:normal;overflow-wrap:normal;white-space:normal}
+.management-shell .jewelry-page .jewelry-table :is(th,td):first-child{width:44px;min-width:44px}
+.management-shell .jewelry-page .jewelry-table :is(th,td):nth-child(2){min-width:260px;width:25%}
+.management-shell .jewelry-page .jewelry-table :is(th,td)[data-column="situacao"]{min-width:180px}
+.management-shell .jewelry-page .jewelry-table :is(th,td)[data-column="genero"]{min-width:100px}
+.management-shell .jewelry-page .jewelry-table :is(th,td)[data-column="colecao"]{min-width:140px}
+.management-shell .jewelry-page .jewelry-table :is(th,td)[data-column="modelo"]{min-width:110px}
+.management-shell .jewelry-page .jewelry-table :is(th,td):is([data-column="custo"],[data-column="total"],[data-column="preco"],[data-column="quantidade"]){white-space:nowrap;font-variant-numeric:tabular-nums}
+.management-shell .jewelry-page .jewelry-table :is(th,td):last-child{min-width:160px}
+.management-shell .jewelry-page .jewelry-table .management-badge{white-space:normal;max-width:220px;overflow-wrap:normal;word-break:normal}
+.management-shell .jewelry-name-with-photo{min-width:0;align-items:center}
+.management-shell .jewelry-name-with-photo>span{flex:1;min-width:0}
+.management-shell .jewelry-name-with-photo :is(strong,small){display:block}
+.management-shell .jewelry-name-with-photo strong{line-height:1.5}
+.management-shell .jewelry-name-with-photo small{margin-top:4px}
+.management-shell .jewelry-table-actions{display:flex;flex-wrap:nowrap;gap:8px}
+.management-shell .erp-density-compact .jewelry-table :is(th,td){padding:10px 12px}
+@media(max-width:1100px){
+ .management-shell .jewelry-page .jewelry-table{min-width:0;max-width:100%}
+ .management-shell .jewelry-page .jewelry-table :is(tbody,tr){display:block;width:100%}
+ .management-shell .jewelry-page .jewelry-table tr{padding:18px}
+ .management-shell .jewelry-page .jewelry-table td,.management-shell .jewelry-page .jewelry-table td:nth-child(n){display:grid;grid-template-columns:minmax(90px,30%) minmax(0,1fr);gap:12px;width:100%;min-width:0;padding:8px 0}
+ .management-shell .jewelry-page .jewelry-table td::before{content:attr(data-label)!important}
+ .management-shell .jewelry-page .jewelry-table td>*{min-width:0}
+ .management-shell .jewelry-page .jewelry-table td:first-child input{justify-self:start}
+ .management-shell .jewelry-page .jewelry-table-actions{flex-wrap:wrap}
+}
+@media(max-width:900px){
+ .management-shell .management-layout,.management-shell .management-layout.erp-collapsed{grid-template-columns:minmax(0,1fr)}
+ .management-shell .management-layout .management-sidebar{height:auto;min-height:68px;padding:12px 18px;overflow:visible;gap:12px}
+ .management-shell .management-sidebar .erp-collapse{display:none!important}
+ .management-shell .management-sidebar .management-brand-name{display:block}
+ .management-shell .management-sidebar.is-open nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+ .management-shell .management-sidebar.is-open nav a>span,.management-shell .management-sidebar.is-open .management-sidebar-bottom :is(a,button)>span{display:block}
+ .management-shell .management-sidebar.is-open .erp-nav-group{display:block}
+ .management-shell .erp-collapsed .management-sidebar nav a,.management-shell .erp-collapsed .management-sidebar-bottom :is(a,button){justify-content:flex-start}
+ .management-shell .management-page{padding:24px 18px 48px}
+ .management-shell .management-topbar{gap:12px;padding:12px 18px;flex-wrap:wrap}
+ .management-shell .management-topbar>.erp-search{min-width:0;flex:1;margin-left:0}
+}
+@media(max-width:480px){.management-shell .management-sidebar.is-open nav{grid-template-columns:1fr}.management-shell .jewelry-page .jewelry-table tr{padding:14px}}

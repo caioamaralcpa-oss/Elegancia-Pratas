@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-12",
+  "change": "Sidebar states and semantic jewelry column sizing",
+  "sourceCommit": "767592d60de77a3c2209288d00d556e917d2bd07",
+  "layout": {
+    "fixtureOnly": true,
+    "productionAuthenticationUsed": false,
+    "cases": 30,
+    "passed": 30,
+    "widths": [
+      1900,
+      1440,
+      1100,
+      768,
+      390
+    ],
+    "sidebarStates": [
+      "expanded",
+      "collapsed"
+    ],
+    "columnSets": [
+      "default",
+      "reversed",
+      "situation_and_price"
+    ],
+    "pageOverflowCases": 0,
+    "minimumSituationBadgeWidth": 143.328125,
+    "maximumSituationBadgeHeight": 33.265625
+  },
+  "regression": {
+    "tests": 28,
+    "passed": 28,
+    "failed": 0
+  },
+  "preview": {
+    "id": "dpl_7KYYhVD8tuBkWnDWxPVEm2VAsWrA",
+    "state": "READY",
+    "buildSeconds": 30
+  },
+  "noChanges": [
+    "lib/",
+    "supabase/",
+    "app/api/",
+    "formulas",
+    "saving functions",
+    "validations",
+    "palette",
+    "production data",
+    "dependencies"
+  ],
+  "localSourceSaved": false
+}
