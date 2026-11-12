@@ -1,6 +1,6 @@
 {
   "date": "2026-11-12",
-  "status": "implemented_for_review_not_production",
+  "status": "isolated_homologation_tested_not_production",
   "plan": {
     "firstMonth": "2026-12",
     "lastMonth": "2027-05",
@@ -50,11 +50,122 @@
     "baseFixtureTablesPreserved": 2
   },
   "visual": {
-    "passed": false,
-    "reason": "Simulated-session browser harness did not reach admin page; hosted login/MFA and viewport tests pending"
+    "passed": true,
+    "syntheticSessions": false,
+    "realHostedMfa": true,
+    "profiles": 3,
+    "widths": [
+      1440,
+      768,
+      390
+    ],
+    "viewportChecks": 9,
+    "horizontalOverflow": false,
+    "pageErrors": 0,
+    "financeTabs": 4,
+    "accountCreatedThroughUi": true
   },
   "personalDataCreated": false,
   "localFilesSaved": false,
   "productionBuildPassed": true,
-  "productionBuildUsedOriginalMiddleware": true
+  "productionBuildUsedOriginalMiddleware": true,
+  "hostedApi": {
+    "passed": 18,
+    "failed": 0,
+    "realSupabaseAuth": true,
+    "realRls": true
+  },
+  "homologation": {
+    "supabaseProject": "cgcaykrtfxlkrbopycyn",
+    "vercelProject": "prj_rx8F5xqSkZxz3NTNkVGWqynppW2k",
+    "deployment": "dpl_HpGPD1QqV6pHQiuDDer5obAFZ5gR",
+    "testedCodeCommit": "924b37a8c9efc9fddde0cd0c9ef92d30c0e494bb",
+    "schemaSha256": "a6976ca5425970d1ef66476a51bf71941782456c92cf9fda460f2633dd26a782",
+    "productionRowsCopied": 0,
+    "syntheticDataRemoved": true,
+    "syntheticAuthUsersDeleted": 3,
+    "bootstrapRetired": true,
+    "authRedirectConfigurationPending": true,
+    "realAccountsProvisioned": false
+  },
+  "lighthouse": {
+    "version": "12.8.2",
+    "browser": "Chromium 133",
+    "preset": "desktop",
+    "dataset": "isolated synthetic finance; empty legacy inventory",
+    "note": "Performance null means NO_SCREENSHOTS, not score zero. Valid measurements only; single valid sample per route; retries after capture errors.",
+    "results": [
+      {
+        "path": "/admin",
+        "performance": null,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": "NO_SCREENSHOTS",
+        "cls": 0.3891757398651607
+      },
+      {
+        "path": "/admin/joias",
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.06266203703703704
+      },
+      {
+        "path": "/admin/colecoes",
+        "performance": null,
+        "accessibility": 96,
+        "bestPractices": 100,
+        "performanceError": "NO_SCREENSHOTS",
+        "cls": 0.06266203703703704
+      },
+      {
+        "path": "/admin/estoque",
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.07377708825847125
+      },
+      {
+        "path": "/admin/precificacao",
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.06266203703703704
+      },
+      {
+        "path": "/admin/catalogo",
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.06266203703703704
+      },
+      {
+        "path": "/admin/integracoes",
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.06561742623237896
+      },
+      {
+        "path": "/admin/financeiro",
+        "performance": 96,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "performanceError": null,
+        "cls": 0.12505742710795903
+      }
+    ]
+  },
+  "pending": [
+    "Supabase Auth Site URL and Redirect URLs via dashboard; connector has no Auth configuration operation",
+    "Owner administrator email for private homologation access",
+    "Real partner accounts and private profile registration",
+    "Valid Performance measurements for overview and collections; NO_SCREENSHOTS after retries",
+    "Production deployment and SQL are outside this homologation approval"
+  ]
 }

@@ -1,6 +1,6 @@
 # Financeiro e repasses mensais aos sócios
 
-**Implementação em revisão na branch feat/financeiro-socios. Não ativada em produção.**
+**Implementação em homologação isolada na branch feat/financeiro-socios. Não ativada em produção.**
 
 ## Regras confirmadas pelo usuário
 - Período: dezembro de 2026 a maio de 2027, seis competências.
@@ -15,7 +15,7 @@
 
 As vendas registram custo histórico e evidência da conferência. Vendas sem custo ficam pendentes, sem lucro inventado, até a gestão conferir o custo. Pedidos do site exigem ID de pedido pago e valores compatíveis; o vínculo único impede duplicação. A integração atual é por registro conferido, sem novos webhooks ou alterações no checkout.
 
-Origem (site/presencial/outro) e entrega (envio/retirada) são campos diferentes. Uma venda enviada não é registrada duas vezes. A entrada de caixa da venda é gerada automaticamente; taxas e frete já pago geram saídas nas contas explicitamente escolhidas, sem dupla dedução no lucro. Esses lançamentos usam a data informada. Não registrar novamente essas mesmas saídas em Movimentações.  as compras de estoque não são novamente consideradas como despesa operacional quando o custo já integra a venda.
+Origem (site/presencial/outro) e entrega (envio/retirada) são campos diferentes. Uma venda enviada não é registrada duas vezes. A entrada de caixa da venda é gerada automaticamente; taxas e frete já pago geram saídas nas contas explicitamente escolhidas, sem dupla dedução no lucro. Esses lançamentos usam a data informada. Não registrar novamente essas mesmas saídas em Movimentações. As compras de estoque não são novamente consideradas como despesa operacional quando o custo já integra a venda.
 
 O fechamento exige confirmação explícita de que todas as vendas recebidas e despesas foram conferidas, além da confirmação final do administrador. Ele bloqueia competências fora do plano, meses não encerrados, participações inválidas, custos pendentes e lucro negativo. Com prejuízo, não é gerado repasse automático; compensação futura de perdas ainda requer uma regra do usuário. Os registros de uma competência fechada ficam protegidos pelas funções transacionais; ajustes devem ser registrados e justificados em competência aberta.
 
@@ -26,7 +26,7 @@ Pagamentos só podem ser marcados como já realizados, uma vez por repasse, em d
 /socios: portal com login e segundo fator. Cada pessoa consulta somente o próprio nome, CPF, telefone, chave Pix, percentual e histórico mensal. O mesmo endereço /socios atende as duas sócias: a conta autenticada determina o cadastro e os repasses visíveis, sem seleção de pessoa por URL. As views finance_my_partner_profile e finance_my_payouts usam security_invoker=true e RLS por auth.uid; sócias não têm concessões de INSERT/UPDATE/DELETE. A proteção não depende de ocultar botões.
 
 ## Operação e dados pessoais
-Os e-mails reais de acesso foram solicitados. Nenhum usuário real, CPF, telefone ou chave Pix foi inventado ou cadastrado. Não há persistência financeira em localStorage; somente a sessão de autenticação segue o comportamento já utilizado pelo Supabase. Não colocar dados pessoais no chat, em SQL público, no GitHub ou em logs.
+Os e-mails reais das sócias foram recebidos separadamente e não constam do repositório público. Nenhum usuário real, CPF, telefone ou chave Pix foi inventado ou cadastrado. Não há persistência financeira em localStorage; somente a sessão de autenticação segue o comportamento já utilizado pelo Supabase. Não colocar dados pessoais no chat, em SQL público, no GitHub ou em logs.
 
 O cadastro inicial da gestão é o local para preencher os dados privados depois que o ambiente for aprovado e preparado. Criar as contas de consulta sem acesso de administrador; elas não devem compartilhar credenciais.
 
@@ -38,7 +38,7 @@ Para o primeiro fechamento, a competência de dezembro/2026 só pode ser encerra
 A versão inicial não implementa contas futuras parceladas, conciliação bancária automática, importação automática retroativa de custos, emissão fiscal ou pagamentos Pix. Essas etapas não são simuladas por números fictícios nem apresentadas como concluídas. Recebimentos e despesas precisam ser conferidos pela gestão.
 
 ## Banco e ativação
-[SQL aditivo para revisão](sql/financeiro-socios.review.sql) e [rollback](sql/financeiro-socios.rollback.sql). O SQL foi executado apenas em PostgreSQL descartável na nuvem com tabelas sintéticas de auth/roles para testar as regras. Não foi aplicado no Supabase de produção.
+[SQL aditivo para revisão](sql/financeiro-socios.review.sql) e [rollback](sql/financeiro-socios.rollback.sql). O SQL foi testado em PostgreSQL descartável na nuvem e, após aprovação, aplicado no Supabase separado de homologação cgcaykrtfxlkrbopycyn. Foram usadas a estrutura-base existente e contas sintéticas com autenticação e MFA reais, sem copiar pedidos, clientes ou imagens de produção. Não foi aplicado no Supabase de produção.
 
 Não há alteração de lib/, supabase/, app/api/, cálculos antigos, dependências ou RPCs existentes. Novas funções têm prefixo finance_; as tabelas novas têm RLS e escrita somente por funções com administrador e MFA. O rollback remove somente objetos novos listados, sem mudar os objetos antigos. Antes de um rollback real, preservar os novos registros financeiros.
 
@@ -53,7 +53,11 @@ A regra do documento de fases permanece: **“Entregar o SQL de cada migração 
 - Rollback testado: zero tabelas financeiras restantes e duas tabelas-base sintéticas preservadas.
 - Lint: zero erros; quatro avisos preexistentes de imagens no site público.
 - Build de produção com configuração sintética e a flag habilitada, sem acesso a dados reais.
-- Navegação visual automatizada não aprovada: o ensaio com sessão simulada não ultrapassou o acesso administrativo. Não são presumidos resultados de viewport, login/MFA ou Supabase hospedado.
+- 18 verificações da API hospedada com usuários reais de teste e MFA passaram: permissões, isolamento, bloqueio de edição, cálculo do lucro, saldos, duplicação, datas e cadastro único.
+- Login administrativo e das duas contas de consulta passou pelo navegador com MFA real. Nove verificações de enquadramento em 1440/768/390 passaram, sem overflow horizontal ou erros de página.
+- As quatro abas financeiras foram navegadas nos três tamanhos; cadastro de conta pela interface e feedback de sucesso confirmados.
+- Lighthouse executado no build de produção da homologação: Financeiro 96/100/100 (Desempenho/Acessibilidade/Boas Práticas). Resultados das outras rotas e limitações de captura constam no relatório específico.
+- Registros, dados pessoais sintéticos e três contas Auth de teste foram removidos após os ensaios. Bootstrap temporário encerrado com HTTP 410.
 - Nenhum código ou dado foi gravado na máquina do usuário.
 
-Para validar em homologação: cadastrar contas e dados sintéticos, registrar venda com custo e despesa, confirmar resultado, testar separadamente as contas das duas sócias, negar edição via API e consulta cruzada, testar competência já fechada e dupla confirmação de pagamento. Concluir o teste visual em 1440/768/390 e a validação de login/MFA no Supabase de homologação antes de solicitar ativação em produção. A prévia automática do PR mantém a flag desligada e pode compartilhar as demais variáveis da loja; não usar páginas antigas dessa prévia para testes de escrita.
+Para a revisão do usuário, use exclusivamente a homologação isolada descrita no [relatório de 12/11](FINANCEIRO-HOMOLOGACAO-2026-11-12.md). Ainda faltam configurar as URLs de autenticação no painel do Supabase e definir o e-mail administrativo de revisão. As contas reais de consulta e dados pessoais não foram cadastrados. Não houve envio de convites ou recuperação por e-mail. A prévia automática do PR mantém a flag desligada e pode compartilhar as demais variáveis da loja; não usar páginas antigas dessa prévia para testes de escrita.
