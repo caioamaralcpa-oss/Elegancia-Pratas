@@ -1,4 +1,6 @@
 'use client';
+import StagingNotice from './staging-notice';
+
 import Link from 'next/link';
 import {useCallback,useEffect,useState,type FormEvent} from 'react';
 import {useManagement} from '../layout';
@@ -38,7 +40,7 @@ export default function FinancePage(){
  const selectAccount=(name='account',required=true)=><select name={name} required={required} defaultValue=""><option value="">Escolha a conta</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select>;
  const dateField=<label>Data<input name="day" type="date" required defaultValue={today()}/></label>;
  const amountField=(name:string,label:string,value?:string,required=true)=><label>{label}<input name={name} type="number" min="0" step="0.01" required={required} defaultValue={value}/></label>;
- return <main className="management-page finance-page"><PageHeader title="Financeiro" description="Entradas, saídas, lucro líquido e repasses mensais aos sócios."/>
+ return <main className="management-page finance-page"><StagingNotice/><PageHeader title="Financeiro" description="Entradas, saídas, lucro líquido e repasses mensais aos sócios."/>
  {!enabled?<section className="management-card"><h2>Módulo em homologação</h2><p>O financeiro permanece desativado até a configuração e a validação do ambiente separado. Nenhum registro financeiro foi alterado.</p></section>:<><div className="erp-toolbar"><label>Competência<input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label><button className="management-outline" type="button" disabled={loading} onClick={()=>void load()}>Atualizar</button></div>
  <nav className="finance-tabs" aria-label="Áreas financeiras">{[['resumo','Resumo'],['vendas','Vendas'],['movimentos','Movimentações'],['socios','Sócios']].map(([id,label])=><button key={id} type="button" aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
  {error?<ErrorState message="Não foi possível carregar o financeiro. Confira a configuração do ambiente e suas permissões." onRetry={()=>void load()}/>:loading?<Skeleton label="Carregando financeiro"/>:<>
