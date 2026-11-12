@@ -160,3 +160,28 @@
 
 /* Icon-only navigation also keeps mobile targets compact and labelled by aria/title. */
 @media(max-width:900px){.management-shell .management-sidebar.is-open nav{grid-template-columns:repeat(auto-fit,minmax(44px,1fr))}.management-shell .erp-collapsed .management-sidebar nav a,.management-shell .erp-collapsed .management-sidebar-bottom :is(a,button){justify-content:center}.management-shell .management-menu-toggle{display:grid;place-items:center;min-width:44px;min-height:44px}}
+
+/* Actionable insights: counts, state and destination remain separate and readable. */
+.management-shell .erp-actions-panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+.management-shell .erp-actions-panel-heading h3{font-size:1.1rem;margin:0 0 6px}
+.management-shell .erp-actions-panel-heading p{font-size:.84rem;color:var(--erp-muted);margin:0;line-height:1.6}
+.management-shell .erp-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;list-style:none;padding:0;margin:0}
+.management-shell .erp-action-grid>li{min-width:0;display:flex}
+.management-shell .erp-action-card{display:flex;flex-direction:column;gap:10px;min-width:0;width:100%;padding:20px;border:1px solid var(--erp-border);border-radius:var(--erp-radius);background:var(--erp-surface);color:var(--erp-ink)}
+.management-shell .erp-action-card[data-pending=true]{border-top:3px solid var(--erp-brand);padding-top:18px}
+.management-shell :is(.erp-action-card,.erp-review-highlight):hover{border-color:var(--erp-focus);background:var(--erp-canvas)}
+.management-shell :is(.erp-action-card,.erp-review-highlight):focus-visible{outline:2px solid var(--erp-focus);outline-offset:3px}
+.management-shell .erp-action-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.management-shell .erp-action-symbol{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:8px;background:var(--erp-canvas);color:var(--erp-brand)}
+.management-shell .erp-action-state{font-size:.67rem;color:var(--erp-muted);line-height:1.5}
+.management-shell .erp-action-value{display:block;font-size:2.1rem;font-weight:650;line-height:1.2;margin-top:8px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--erp-brand)}
+.management-shell .erp-action-label{font-size:.86rem;line-height:1.5;overflow-wrap:break-word}
+.management-shell .erp-action-link{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:auto;padding-top:16px;font-size:.76rem;font-weight:600;color:var(--erp-brand)}
+.management-shell .erp-review-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.management-shell .erp-review-highlight{display:flex;flex-direction:column;gap:8px;min-width:0;padding:20px;border:1px solid var(--erp-border);border-radius:var(--erp-radius);background:var(--erp-canvas);color:var(--erp-ink)}
+.management-shell .erp-review-highlight-label{font-size:.76rem;line-height:1.5;color:var(--erp-muted)}
+.management-shell .erp-review-highlight>strong{font-size:1.55rem;line-height:1.3;font-variant-numeric:tabular-nums;color:var(--erp-brand);overflow-wrap:anywhere}
+.management-shell .erp-review-highlight-name{font-size:.85rem;line-height:1.5;overflow-wrap:break-word}
+.management-shell .erp-actions-panel .erp-actions-method{font-size:.76rem;line-height:1.7;color:var(--erp-muted);border-top:1px solid var(--erp-border);padding-top:18px;margin:20px 0 0}
+@media(max-width:1200px){.management-shell .erp-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.management-shell .erp-action-grid,.management-shell .erp-review-highlights{grid-template-columns:minmax(0,1fr)}.management-shell .erp-action-card,.management-shell .erp-review-highlight{padding:18px}.management-shell .erp-action-card[data-pending=true]{padding-top:16px}}
