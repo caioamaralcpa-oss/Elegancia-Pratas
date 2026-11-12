@@ -157,3 +157,6 @@
  .management-shell .management-topbar>.erp-search{min-width:0;flex:1;margin-left:0}
 }
 @media(max-width:480px){.management-shell .management-sidebar.is-open nav{grid-template-columns:1fr}.management-shell .jewelry-page .jewelry-table tr{padding:14px}}
+
+/* Icon-only navigation also keeps mobile targets compact and labelled by aria/title. */
+@media(max-width:900px){.management-shell .management-sidebar.is-open nav{grid-template-columns:repeat(auto-fit,minmax(44px,1fr))}.management-shell .erp-collapsed .management-sidebar nav a,.management-shell .erp-collapsed .management-sidebar-bottom :is(a,button){justify-content:center}.management-shell .management-menu-toggle{display:grid;place-items:center;min-width:44px;min-height:44px}}
