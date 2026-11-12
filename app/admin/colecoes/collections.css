@@ -5,3 +5,28 @@
 .collection-assignment-table td:nth-child(2) strong,.collection-assignment-table td:nth-child(2) small{display:block}
 .collection-assignment-table td:nth-child(2) small{color:#806d70;margin-top:5px}
 .management-shell .collection-assignment-table input[type=checkbox]{width:18px;min-height:18px;height:18px;padding:0;cursor:pointer;accent-color:#6c1727}
+
+/* Distribution cards are independent of positional table widths. */
+.management-shell .collection-selection-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 0;border-bottom:1px solid var(--erp-border);margin-bottom:20px;font-size:.82rem}
+.management-shell .collection-selection-bar>span{color:var(--erp-muted)}
+.management-shell .collection-select-all{display:inline-flex;align-items:center;gap:8px;min-height:28px;margin:0;font-size:.8rem;cursor:pointer}
+.management-shell .collection-assignment-results input[type=checkbox]{width:18px;height:18px;min-height:18px;flex:0 0 18px;padding:0;accent-color:var(--erp-brand)}
+.management-shell .collection-assignment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;list-style:none;padding:0;margin:0 0 24px}
+.management-shell .collection-assignment-grid>li{min-width:0;display:flex}
+.management-shell .collection-jewelry-card{display:flex;flex-direction:column;gap:20px;width:100%;min-width:0;padding:20px;border:1px solid var(--erp-border);border-radius:var(--erp-radius);background:var(--erp-surface);box-shadow:var(--erp-shadow)}
+.management-shell .collection-jewelry-card[data-selected=true]{border-color:var(--erp-brand);box-shadow:inset 0 0 0 1px var(--erp-brand)}
+.management-shell .collection-jewelry-card:focus-within{outline:2px solid var(--erp-focus);outline-offset:3px}
+.management-shell .collection-jewelry-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.management-shell .collection-jewelry-card-head .management-badge{font-size:.72rem;padding:6px 9px;white-space:normal;word-break:normal}
+.management-shell .collection-jewelry-card-body{display:flex;align-items:center;gap:16px;min-width:0}
+.management-shell .collection-jewelry-card-body .jewelry-thumbnail{width:88px;height:88px;flex:0 0 88px;object-fit:cover;border-radius:10px}
+.management-shell .collection-jewelry-card-body .jewelry-thumbnail-placeholder{display:grid;place-items:center;text-align:center;font-size:.7rem}
+.management-shell .collection-jewelry-card-body>div{min-width:0}
+.management-shell .collection-jewelry-card h3{margin:0;font-size:1rem;line-height:1.5;word-break:normal;overflow-wrap:break-word}
+.management-shell .collection-jewelry-card-body p{margin:6px 0 0;font-size:.75rem;color:var(--erp-muted);overflow-wrap:anywhere}
+.management-shell .collection-jewelry-details{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin:0;padding-top:16px;border-top:1px solid var(--erp-border)}
+.management-shell .collection-jewelry-details dt{font-size:.7rem;color:var(--erp-muted);margin-bottom:5px}
+.management-shell .collection-jewelry-details dd{font-size:.84rem;line-height:1.5;margin:0;overflow-wrap:break-word}
+.management-shell .collection-jewelry-card-actions{margin-top:auto;padding-top:4px}
+.management-shell .collection-jewelry-card-actions button{padding:8px 12px}
+@media(max-width:480px){.management-shell .collection-jewelry-card{padding:16px}.management-shell .collection-jewelry-card-body{gap:12px}}
