@@ -1,4 +1,5 @@
 'use client';
+import { Feedback, ErrorState, EmptyState, Skeleton, PageHeader } from '../ui/components';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { brl } from '@/lib/products';
@@ -21,11 +22,14 @@ function parseMoney(value: string) {
 
 export default function StockPage() {
   const { db } = useManagement();
+  const [query,setQuery]=useState('');
   const [tab, setTab] = useState<Kind | 'modelos'>('embalagem');
+  useEffect(()=>{const area=new URLSearchParams(window.location.search).get('area');if(area==='insumo'||area==='embalagem'){setTab(area);setItemDraft({kind:area,name:'',unitCost:'',initialQuantity:'0',acquiredOn:''});}},[]);
   const [items, setItems] = useState<StockItem[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [models, setModels] = useState<PackagingModel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError,setLoadError]=useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -38,12 +42,13 @@ export default function StockPage() {
   const [modelDraft, setModelDraft] = useState<ModelDraft>({ name: '', channel: 'local', quantities: {} });
 
   const refresh = useCallback(async () => {
+    setLoading(true);setLoadError(false);setMessage('');
     const [stockResult, movementResult, modelResult] = await Promise.all([
       db.from('stock_items').select('id,kind,name,unit_cost_cents,purchase_total_cents,quantity_on_hand,initial_quantity,acquired_quantity,acquired_on').order('created_at', { ascending: false }),
       db.from('stock_movements').select('id,item_id,delta,balance_after,reason,created_at').order('created_at', { ascending: false }).limit(30),
       db.from('packaging_models').select('id,name,channel,packaging_model_components(item_id,quantity)').order('created_at', { ascending: false }),
     ]);
-    if (stockResult.error || movementResult.error || modelResult.error) setMessage('Não foi possível carregar o estoque. Confira sua sessão.');
+    if (stockResult.error || movementResult.error || modelResult.error) {setLoadError(true);setMessage('Não foi possível carregar o estoque. Confira sua sessão.');}
     else {
       setItems((stockResult.data ?? []) as StockItem[]);
       setMovements((movementResult.data ?? []) as Movement[]);
@@ -143,7 +148,7 @@ export default function StockPage() {
     finally { setBusy(false); }
   }
 
-  const visibleItems = items.filter(item => item.kind === tab);
+  const visibleItems = items.filter(item => item.kind === tab && item.name.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
   const visibleMovements = movements.filter(movement => items.some(item => item.id === movement.item_id && item.kind === tab)).slice(0, 15);
   const adjustedItem = items.find(item => item.id === adjustingId);
   let unitCostPreview: number | null = null;
@@ -151,14 +156,15 @@ export default function StockPage() {
     try { unitCostPreview = packagingUnitCostCents(parseMoney(itemDraft.unitCost), Number(itemDraft.initialQuantity)); }
     catch { /* aguardando preenchimento */ }
   }
-  return <main className="management-page stock-page"><p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><h1>Estoque</h1><p className="management-intro">Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão.</p>
+  return <main className="management-page stock-page">{loadError && <ErrorState onRetry={()=>void refresh()}/>} <p className="eyebrow">ETAPA 02 · CUSTOS E SALDOS</p><PageHeader title={"Estoque"} description={"Registre embalagens, equipamentos e os conjuntos usados em vendas locais ou envios. Estes dados só aparecem na gestão."}/>
+    <div className="erp-insights"><article className="erp-insight"><span>Embalagens cadastradas</span><strong>{items.filter(x=>x.kind==='embalagem').length}</strong><span>Tipos de embalagem</span></article><article className="erp-insight"><span>Itens com saldo zero</span><strong>{items.filter(x=>x.quantity_on_hand===0).length}</strong><span>Revisar necessidade de reposição</span></article><article className="erp-insight"><span>Modelos de embalagem</span><strong>{models.length}</strong><span>Composições disponíveis</span></article></div><div className="erp-toolbar"><label>Buscar item<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome da embalagem ou insumo"/></label></div>
     <div className="stock-tabs" role="group" aria-label="Áreas do estoque"><button type="button" aria-pressed={tab === 'embalagem'} onClick={() => openTab('embalagem')}>Embalagens</button><button type="button" aria-pressed={tab === 'insumo'} onClick={() => openTab('insumo')}>Insumos</button><button type="button" aria-pressed={tab === 'modelos'} onClick={() => openTab('modelos')}>Modelos de embalagem</button></div>
-    <p role="status" className="management-status">{message}</p>
-    {loading ? <p>Carregando estoque...</p> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <p>Nenhum modelo cadastrado.</p> : <div className="stock-records">{models.map(model => {
+    <Feedback message={message}/>
+    {loadError ? null : loading ? <Skeleton label="Carregando estoque"/> : tab === 'modelos' ? <div className="stock-layout"><section className="management-card"><h2>Modelos cadastrados</h2>{models.length === 0 ? <EmptyState title="Nenhum modelo cadastrado" href="#packaging-model-form" action="Criar modelo"/> : <div className="stock-records">{models.map(model => {
       let summary: ReturnType<typeof packagingModelSummary> | null = null;
       try { summary = packagingModelSummary(model.packaging_model_components, packaging); } catch { /* item ausente */ }
       return <article key={model.id}><div><strong>{model.name}</strong><small>{model.channel === 'local' ? 'Venda local' : 'Envio'} · {model.packaging_model_components.length} componente(s)</small></div><div><strong>{summary ? brl(summary.costCents) : '—'}</strong><small>{summary?.availableSets ?? 0} conjunto(s) possíveis com o saldo atual</small></div><button type="button" onClick={() => editModel(model)}>Editar</button></article>;
-    })}</div>}</section><section id="packaging-model-form" className="management-card stock-form-card"><p className="eyebrow">COMPOSIÇÃO</p><h2>{editingModelId ? 'Editar modelo' : 'Novo modelo'}</h2><p>Escolha as embalagens e a quantidade usada em uma venda. Insumos duráveis não entram neste modelo.</p><form onSubmit={saveModel}><label>Nome do modelo<input required maxLength={120} value={modelDraft.name} onChange={event => setModelDraft({ ...modelDraft, name: event.target.value })} placeholder="Ex.: Envio padrão"/></label><label>Tipo de venda<select value={modelDraft.channel} onChange={event => setModelDraft({ ...modelDraft, channel: event.target.value as ModelDraft['channel'] })}><option value="local">Venda local</option><option value="envio">Envio</option></select></label><fieldset className="stock-components"><legend>Embalagens utilizadas</legend>{packaging.length === 0 ? <p>Cadastre embalagens antes de montar um modelo.</p> : packaging.map(item => <label key={item.id}><span>{item.name}<small>{brl(item.unit_cost_cents)} cada · saldo {item.quantity_on_hand}</small></span><input type="number" min="0" max="1000" step="1" aria-label={`Quantidade de ${item.name}`} value={modelDraft.quantities[item.id] ?? '0'} onChange={event => setModelDraft(current => ({ ...current, quantities: { ...current.quantities, [item.id]: event.target.value } }))}/></label>)}</fieldset><div className="stock-summary"><span>Custo por modelo <strong>{modelPreview ? brl(modelPreview.costCents) : '—'}</strong></span><span>Conjuntos possíveis <strong>{modelPreview?.availableSets ?? 0}</strong></span></div><button className="botao" type="submit" disabled={busy || packaging.length === 0}>{busy ? 'Salvando...' : 'Salvar modelo'}</button>{editingModelId && <button className="management-outline" type="button" onClick={() => { setEditingModelId(null); setModelDraft({ name: '', channel: 'local', quantities: {} }); }}>Cancelar edição</button>}</form></section></div> : <><div className="stock-layout"><section className="management-card"><h2>{tab === 'embalagem' ? 'Embalagens cadastradas' : 'Insumos e equipamentos'}</h2>{visibleItems.length === 0 ? <p>Nenhum item cadastrado nesta seção.</p> : <div className="stock-records">{visibleItems.map(item => {
+    })}</div>}</section><section id="packaging-model-form" className="management-card stock-form-card"><p className="eyebrow">COMPOSIÇÃO</p><h2>{editingModelId ? 'Editar modelo' : 'Novo modelo'}</h2><p>Escolha as embalagens e a quantidade usada em uma venda. Insumos duráveis não entram neste modelo.</p><form onSubmit={saveModel}><label>Nome do modelo<input required maxLength={120} value={modelDraft.name} onChange={event => setModelDraft({ ...modelDraft, name: event.target.value })} placeholder="Ex.: Envio padrão"/></label><label>Tipo de venda<select value={modelDraft.channel} onChange={event => setModelDraft({ ...modelDraft, channel: event.target.value as ModelDraft['channel'] })}><option value="local">Venda local</option><option value="envio">Envio</option></select></label><fieldset className="stock-components"><legend>Embalagens utilizadas</legend>{packaging.length === 0 ? <p>Cadastre embalagens antes de montar um modelo.</p> : packaging.map(item => <label key={item.id}><span>{item.name}<small>{brl(item.unit_cost_cents)} cada · saldo {item.quantity_on_hand}</small></span><input type="number" min="0" max="1000" step="1" aria-label={`Quantidade de ${item.name}`} value={modelDraft.quantities[item.id] ?? '0'} onChange={event => setModelDraft(current => ({ ...current, quantities: { ...current.quantities, [item.id]: event.target.value } }))}/></label>)}</fieldset><div className="stock-summary"><span>Custo por modelo <strong>{modelPreview ? brl(modelPreview.costCents) : '—'}</strong></span><span>Conjuntos possíveis <strong>{modelPreview?.availableSets ?? 0}</strong></span></div><button className="botao" type="submit" disabled={busy || packaging.length === 0}>{busy ? 'Salvando...' : 'Salvar modelo'}</button>{editingModelId && <button className="management-outline" type="button" onClick={() => { setEditingModelId(null); setModelDraft({ name: '', channel: 'local', quantities: {} }); }}>Cancelar edição</button>}</form></section></div> : <><div className="stock-layout"><section className="management-card"><h2>{tab === 'embalagem' ? 'Embalagens cadastradas' : 'Insumos e equipamentos'}</h2>{visibleItems.length === 0 ? <EmptyState title="Nenhum item nesta seleção" href="#stock-item-form" action="Cadastrar item"/> : <div className="stock-records">{visibleItems.map(item => {
       const monthly = item.kind === 'insumo' && item.acquired_on ? monthlyDepreciationCents(item.unit_cost_cents * item.acquired_quantity, item.acquired_on) : 0;
       return <article key={item.id}><div><strong>{item.name}</strong><small>Custo unitário {brl(item.unit_cost_cents)} · saldo {item.quantity_on_hand}</small>{item.kind === 'embalagem' && <small>Custo total da compra: {brl(item.purchase_total_cents ?? 0)} · quantidade inicial: {item.initial_quantity}</small>}{item.kind === 'insumo' && <small>Quantidade inicial: {item.initial_quantity} · compra: {item.acquired_on} · depreciação deste mês: {brl(monthly)}</small>}</div><div className="stock-record-actions"><button type="button" onClick={() => editItem(item)}>Editar</button><button type="button" onClick={() => { setAdjustingId(item.id); setMovementDirection(item.kind === 'insumo' ? 'saida' : 'entrada'); setMovementQuantity('1'); setMovementReason(''); }}>Movimentar</button></div></article>;
     })}</div>}</section>

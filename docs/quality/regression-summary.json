@@ -1,0 +1,69 @@
+{
+  "base": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+  "mainRoutesCommit": "0d3e467a1f22c77715f9625b1479b934123648f5",
+  "integrationContrastCommit": "66535f77b2689de89372e4fdc33fb99713e94485",
+  "date": "2026-11-10",
+  "cloudOnly": true,
+  "productionWrites": 0,
+  "tests": {
+    "passed": 28,
+    "failed": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 4,
+    "warningScope": "Preexisting public storefront image warnings"
+  },
+  "build": "passed",
+  "vercelPreview": "READY",
+  "protectedPaths": {
+    "paths": [
+      "lib/",
+      "supabase/",
+      "app/api/",
+      "package.json",
+      "package-lock.json"
+    ],
+    "changed": []
+  },
+  "originalFunctionBodies": {
+    "compared": 19,
+    "changed": 0
+  },
+  "axe": {
+    "tags": [
+      "wcag2a",
+      "wcag2aa",
+      "wcag21a",
+      "wcag21aa"
+    ],
+    "widths": [
+      1440,
+      768,
+      390
+    ],
+    "routes": [
+      "/admin",
+      "/admin/joias",
+      "/admin/colecoes",
+      "/admin/estoque",
+      "/admin/precificacao",
+      "/admin/catalogo",
+      "/admin/integracoes",
+      "/admin/integracoes/frete",
+      "/admin/acesso"
+    ],
+    "pageChecks": 27,
+    "drawerChecks": 3,
+    "violations": 0,
+    "pageOverflow": 0,
+    "limitation": "Automated checks do not certify complete WCAG compliance"
+  },
+  "interactions": [
+    "URL preferences survive reload",
+    "clear filters",
+    "open drawer and type without saving",
+    "Escape closes drawer",
+    "Ctrl+K opens navigation"
+  ]
+}
