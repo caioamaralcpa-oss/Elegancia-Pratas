@@ -1,2 +1,32 @@
 .catalog-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}.catalog-photo-grid>div{display:grid;gap:6px}.catalog-photo-grid img{width:100%;aspect-ratio:1;object-fit:cover}.catalog-photo-grid small{color:#765e61}.catalog-photo-grid button{background:#fff;border:1px solid #d2c3c0;padding:7px;cursor:pointer}.catalog-actions{display:flex;gap:12px;flex-wrap:wrap}.catalog-actions .botao{margin-top:0}
 .catalog-shipping{margin-top:24px}.catalog-shipping>p{max-width:750px}.catalog-shipping form{display:grid;gap:18px}.catalog-shipping form>.management-outline{justify-self:start}.catalog-shipping-state{background:#f7f0ed;padding:12px 16px;margin-bottom:0}
+
+/* Catalog review uses the same spacious card pattern as collection assignment. */
+.management-shell .catalog-review-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+.management-shell .catalog-review-layout>#catalog-editor{margin-top:0;min-width:0}
+.management-shell .catalog-review-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.management-shell .catalog-review-heading h2{margin:0}
+.management-shell .catalog-review-heading>span{font-size:.8rem;color:var(--erp-muted)}
+.management-shell .catalog-review-scroll{max-height:640px;overflow-y:auto;overscroll-behavior:contain;padding:4px;margin:-4px;scrollbar-gutter:stable}
+.management-shell .catalog-review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;padding:0;margin:0;list-style:none}
+.management-shell .catalog-review-grid>li{display:flex;min-width:0}
+.management-shell .catalog-review-card{display:flex;flex-direction:column;gap:20px;width:100%;min-width:0;padding:20px;border:1px solid var(--erp-border);border-radius:var(--erp-radius);background:var(--erp-surface);color:var(--erp-ink);box-shadow:var(--erp-shadow);font:inherit;text-align:left;cursor:pointer}
+.management-shell .catalog-review-card:hover{border-color:var(--erp-focus);background:var(--erp-canvas)}
+.management-shell .catalog-review-card[aria-pressed=true]{border-color:var(--erp-brand);box-shadow:inset 0 0 0 1px var(--erp-brand)}
+.management-shell .catalog-review-card:focus-visible{outline:2px solid var(--erp-focus);outline-offset:2px}
+.management-shell .catalog-review-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.management-shell .catalog-review-card-head .management-badge{font-size:.72rem;padding:6px 9px;white-space:normal}
+.management-shell .catalog-review-card-head>span:last-child{color:var(--erp-brand)}
+.management-shell .catalog-review-card-body{display:flex;align-items:center;gap:16px;min-width:0}
+.management-shell .catalog-review-thumbnail{display:block;width:88px;height:88px;flex:0 0 88px;border-radius:10px;object-fit:cover;background:var(--erp-canvas)}
+.management-shell .catalog-review-placeholder{display:grid;place-items:center;padding:8px;border:1px solid var(--erp-border);text-align:center;font-size:.7rem;color:var(--erp-muted)}
+.management-shell .catalog-review-identity{display:block;min-width:0}
+.management-shell .catalog-review-identity>strong{display:block;font-size:1rem;line-height:1.5;word-break:normal;overflow-wrap:break-word}
+.management-shell .catalog-review-identity>small{display:block;margin-top:6px;color:var(--erp-muted);font-size:.75rem;overflow-wrap:anywhere}
+.management-shell .catalog-review-details{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding-top:16px;border-top:1px solid var(--erp-border);width:100%;font-size:.84rem;line-height:1.5}
+.management-shell .catalog-review-details>span{min-width:0;overflow-wrap:break-word}
+.management-shell .catalog-review-details small{display:block;margin-bottom:5px;font-size:.7rem;color:var(--erp-muted)}
+.management-shell .catalog-review-card-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;width:100%;margin-top:auto;padding-top:4px}
+.management-shell .catalog-review-card-footer>strong{color:var(--erp-brand);font-size:1rem;font-variant-numeric:tabular-nums}
+.management-shell .catalog-review-card-footer>span{font-size:.75rem;color:var(--erp-brand)}
+@media(max-width:480px){.management-shell .catalog-review-card{padding:16px}.management-shell .catalog-review-card-body{gap:12px}}
