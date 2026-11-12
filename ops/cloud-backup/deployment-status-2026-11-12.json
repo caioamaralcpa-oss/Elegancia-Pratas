@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-12",
+  "status": "published_authenticated_validation_pending",
+  "production": {
+    "url": "https://eleganciapratas.vercel.app/admin",
+    "deployment": "dpl_EYrnqE4pLJaSyGS6EjSKKEc1mwD1",
+    "state": "READY",
+    "sha": "3c17565ec92098f1f788132bca8f77190a50d378",
+    "mergeMethod": "merge",
+    "pr": 12
+  },
+  "rollback": {
+    "deployment": "dpl_9viaa8ivUuzJ9XwN2HqwfJbXNrLN",
+    "sha": "c771eeaa1e35cd7388c55fc7bac49a20659b458a",
+    "candidateConfirmed": true,
+    "executed": false
+  },
+  "scope": {
+    "changedFiles": 25,
+    "protectedDirectoriesChanged": [],
+    "migrations": 0,
+    "environmentChanges": 0,
+    "sourceDataWrites": 0
+  },
+  "build": {
+    "status": "success",
+    "buildSeconds": 44,
+    "preexistingPublicImageWarnings": 4
+  },
+  "runtime": {
+    "windowStart": "2026-11-12T11:50:00Z",
+    "windowEnd": "2026-11-12T11:55:36.009Z",
+    "errorAndFatalLogsMatched": 0
+  },
+  "http": {
+    "kind": "http_only_no_browser_or_login",
+    "paths": [
+      {
+        "path": "/",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/joias",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/colecoes",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/estoque",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/precificacao",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/catalogo",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/integracoes",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      },
+      {
+        "path": "/admin/integracoes/frete",
+        "status": 200,
+        "htmlDocument": true,
+        "pass": true
+      }
+    ],
+    "total": 9,
+    "passed": 9,
+    "assets": 15,
+    "assetFailures": 0,
+    "sourceWrites": 0,
+    "at": "2026-11-12T11:56:13.133Z"
+  },
+  "browser": {
+    "completed": false,
+    "authenticated": false,
+    "reason": "Cloud Chromium process terminated during browser harness; no visual/console/viewport checks claimed"
+  },
+  "pending": [
+    "Authenticated login/MFA and read-only navigation across eight admin pages",
+    "Console and horizontal overflow at widths 1440,768,390",
+    "Compare known stock cost, one jewelry price and one margin to previous system"
+  ],
+  "phase2Started": false,
+  "localSourceOrDataSaved": false
+}
