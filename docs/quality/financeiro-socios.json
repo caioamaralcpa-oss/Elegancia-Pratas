@@ -65,7 +65,7 @@
     "financeTabs": 4,
     "accountCreatedThroughUi": true
   },
-  "personalDataCreated": false,
+  "personalDataCreated": true,
   "localFilesSaved": false,
   "productionBuildPassed": true,
   "productionBuildUsedOriginalMiddleware": true,
@@ -86,7 +86,15 @@
     "syntheticAuthUsersDeleted": 3,
     "bootstrapRetired": true,
     "authRedirectConfigurationPending": true,
-    "realAccountsProvisioned": false
+    "realAccountsProvisioned": true,
+    "ownerAccount": {
+      "created": true,
+      "role": "administrador",
+      "emailConfirmed": false,
+      "passwordAssigned": false,
+      "activationPending": true
+    },
+    "realPartnerAccountsProvisioned": false
   },
   "lighthouse": {
     "version": "12.8.2",
@@ -163,9 +171,11 @@
   },
   "pending": [
     "Supabase Auth Site URL and Redirect URLs via dashboard; connector has no Auth configuration operation",
-    "Owner administrator email for private homologation access",
     "Real partner accounts and private profile registration",
     "Valid Performance measurements for overview and collections; NO_SCREENSHOTS after retries",
-    "Production deployment and SQL are outside this homologation approval"
-  ]
+    "Production deployment and SQL are outside this homologation approval",
+    "Owner administrative account activation and private password setup"
+  ],
+  "realOwnerEmailStoredOnlyInSupabase": true,
+  "realSensitivePartnerProfileDataCreated": false
 }
