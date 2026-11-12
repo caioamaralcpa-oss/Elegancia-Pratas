@@ -1,6 +1,6 @@
 export type PartnerShare = { id: string; shareBps: number };
 export type DistributionInput = { month: string; firstMonth: string; profitCents: number; partners: PartnerShare[] };
-const TOTAL_BPS = 10000n;
+const TOTAL_BPS = BigInt(10000);
 function monthIndex(value: string): number {
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(value))throw new Error('Informe a competência no formato AAAA-MM.');
  const [year,month]=value.split('-').map(Number);
@@ -22,10 +22,10 @@ export function distributeMonthlyProfit(input: DistributionInput) {
  if(shares!==10000)throw new Error('As participações precisam somar exatamente 100%.');
  const profit=BigInt(input.profitCents);
  // The half-cent, if any, remains in the business; money is never represented as a floating point amount.
- const pool=profit*5000n/TOTAL_BPS;
+ const pool=profit*BigInt(5000)/TOTAL_BPS;
  const allocations=input.partners.map(p=>{const weighted=pool*BigInt(p.shareBps);return{id:p.id,shareBps:p.shareBps,cents:weighted/TOTAL_BPS,remainder:weighted%TOTAL_BPS}});
- let residue=pool-allocations.reduce((sum,p)=>sum+p.cents,0n);
+ let residue=pool-allocations.reduce((sum,p)=>sum+p.cents,BigInt(0));
  const ranked=[...allocations].sort((a,b)=>a.remainder===b.remainder?(a.id<b.id?-1:a.id>b.id?1:0):a.remainder>b.remainder?-1:1);
- for(const p of ranked){if(residue===0n)break;if(p.shareBps>0){p.cents+=1n;residue-=1n}}
+ for(const p of ranked){if(residue===BigInt(0))break;if(p.shareBps>0){p.cents+=BigInt(1);residue-=BigInt(1)}}
  return {month:input.month,monthNumber:offset+1,profitCents:input.profitCents,distributionBps:5000,poolCents:Number(pool),retainedCents:Number(profit-pool),partners:allocations.map(p=>({id:p.id,shareBps:p.shareBps,amountCents:Number(p.cents)}))};
 }

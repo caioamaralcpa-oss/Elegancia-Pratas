@@ -36,10 +36,12 @@ const sections = [
   { href: '/admin/precificacao', label: 'Precificação', icon: 'tag' },
   { href: '/admin/catalogo', label: 'Catálogo', icon: 'grid' },
   { href: '/admin/integracoes', label: 'Integrações', icon: 'link' },
+  ...(process.env.NEXT_PUBLIC_FINANCE_ENABLED === 'true' ? [{ href: '/admin/financeiro', label: 'Financeiro', icon: 'finance' }] : []),
 ];
 
 function NavIcon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
+    finance: <><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M15 14h3M6 3v4"/></>,
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></>,
     gem: <><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M6 3l3 6 3 12 3-12 3-6"/></>,
     layers: <><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,

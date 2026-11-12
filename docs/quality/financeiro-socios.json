@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-12",
+  "status": "implemented_for_review_not_production",
+  "plan": {
+    "firstMonth": "2026-12",
+    "lastMonth": "2027-05",
+    "months": 6,
+    "distributionBps": 5000,
+    "partners": [
+      {
+        "key": "aurizinete",
+        "name": "Aurizinete",
+        "shareBps": 6000
+      },
+      {
+        "key": "elizabete",
+        "name": "Elizabete",
+        "shareBps": 2500
+      },
+      {
+        "key": "caio",
+        "name": "Caio",
+        "shareBps": 1500
+      }
+    ],
+    "basis": "Lucro líquido mensal: vendas recebidas e frete cobrado, menos custo histórico das peças, taxas, frete pago e despesas operacionais registradas"
+  },
+  "appTests": {
+    "passed": 36,
+    "failed": 0,
+    "existing": 28,
+    "new": 8
+  },
+  "postgresTests": {
+    "passed": 14,
+    "failed": 0,
+    "syntheticAuthAndRoles": true,
+    "fixtureClockForClose": true
+  },
+  "lint": {
+    "errors": 0,
+    "preexistingWarnings": 4
+  },
+  "productionSqlApplied": false,
+  "productionFeatureEnabled": false,
+  "existingProtectedPathsChanged": [],
+  "rollback": {
+    "tested": true,
+    "newFinancialTablesRemaining": 0,
+    "baseFixtureTablesPreserved": 2
+  },
+  "visual": {
+    "passed": false,
+    "reason": "Simulated-session browser harness did not reach admin page; hosted login/MFA and viewport tests pending"
+  },
+  "personalDataCreated": false,
+  "localFilesSaved": false,
+  "productionBuildPassed": true,
+  "productionBuildUsedOriginalMiddleware": true
+}
