@@ -37,7 +37,14 @@ Backup novo e verificado antes da estrutura aditiva: execução 2026-11-13T12-42
 
 O SQL foi aplicado de forma aditiva ao projeto oficial após homologação. As 21 tabelas públicas existentes tiveram contagens e checksums comparados antes/depois, sem diferença. Os eventos comerciais são calculados em código; não foram inseridas campanhas ou dados de teste na produção.
 
-Calendário e planejamento serão publicados com NEXT_PUBLIC_CAMPAIGN_ENABLED=true. CAMPAIGN_AI_ENABLED=false e NEXT_PUBLIC_CAMPAIGN_AI_READY=false impedem requisições pagas enquanto a conta aguarda habilitação. O modelo está configurado somente no servidor. A Vercel recusou a geração por exigir cartão; não foi alterado plano, cadastrado pagamento ou habilitada recarga automática. O usuário foi informado e a decisão sobre essa configuração permanece com ele.
+Calendário e planejamento foram publicados com NEXT_PUBLIC_CAMPAIGN_ENABLED=true. CAMPAIGN_AI_ENABLED=false e NEXT_PUBLIC_CAMPAIGN_AI_READY=false impedem requisições pagas enquanto a conta aguarda habilitação. O modelo está configurado somente no servidor. A Vercel recusou a geração por exigir cartão; não foi alterado plano, cadastrado pagamento ou habilitada recarga automática. O usuário foi informado e a decisão sobre essa configuração permanece com ele.
 
 ## Uso no sistema oficial
 Abra Coleções → Calendário e campanhas. Cadastre ocasiões próprias e planos de divulgação; o conteúdo salvo fica no Supabase. A seção de IA mostra a pendência de habilitação e mantém o botão desabilitado enquanto o provedor não liberar a conta. Depois dessa liberação, é necessário habilitar as flags de IA e concluir um teste real antes de declarar a geração operacional.
+
+## Encerramento da implementação
+PR 16 integrado em 4cb9fa83c7bd4eb5be518a2d04c000f728d39213. Build funcional dpl_AoLebhHQRRoF1gsQD5FEtjo2d8HV: READY. Loja pública retornou 200; Coleções, Campanhas e Financeiro sem sessão retornaram 307 para o acesso administrativo. A consulta de erros/fatal da implantação nos dez minutos observados não retornou grupos; não é monitoramento permanente.
+
+As duas contas Auth sintéticas e seus vínculos administrativos foram removidos. Eventos, planos, inspirações e contadores sintéticos foram limpos do banco de homologação; a função temporária foi substituída por HTTP 410. A produção ficou com zero registros novos de campanha até o início do uso real, sem transferência dos testes.
+
+A geração real continua pendente da exigência externa de cartão válido pela Vercel. Só deve ser considerada operacional após habilitação e uma geração real validada. O calendário e o planejamento não dependem dessa habilitação.

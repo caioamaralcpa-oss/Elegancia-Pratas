@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "status": "calendar_planning_ready_ai_blocked_by_provider_billing",
+  "status": "published_calendar_planning_ai_pending_provider_activation",
   "applicationTests": {
     "passed": 45,
     "failed": 0
@@ -55,5 +55,16 @@
   "existingTablesUnchanged": true,
   "protectedDirectoriesChanged": [],
   "newDependencies": [],
-  "localProjectFilesSaved": false
+  "localProjectFilesSaved": false,
+  "production": {
+    "commit": "4cb9fa83c7bd4eb5be518a2d04c000f728d39213",
+    "deployment": "dpl_AoLebhHQRRoF1gsQD5FEtjo2d8HV",
+    "build": "READY",
+    "publicHttpChecksPassed": true
+  },
+  "cleanup": {
+    "syntheticUsersDeleted": 2,
+    "syntheticCampaignDataRemoved": true,
+    "temporaryFunctionRetired": true
+  }
 }
