@@ -16,6 +16,7 @@ import './editorial.css';
 import './system.css';
 import './ui/tokens.css';
 import WorkspaceTools from './workspace-tools';
+import {useIdleSession,IdleWarning,IDLE_MESSAGE} from '../security/use-idle-session';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -67,17 +68,31 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
   const [message, setMessage] = useState('');
   const [accountName, setAccountName] = useState('');
 
+  const handleExpired = useCallback((reason:'inactivity'|'signed-out') => {
+    setState('login'); setPassword(''); setCode(''); setFactorId(''); setQrCode('');
+    setAccountName(''); setMenuOpen(false);
+    setMessage(reason==='inactivity'?IDLE_MESSAGE:'Sessão encerrada. Entre novamente.');
+  }, []);
+  const {ensureSession,warning,extend,endSession}=useIdleSession(db,handleExpired);
+
   const continueSignIn = useCallback(async () => {
     if (!db) return;
+    const {data:{session}}=await db.auth.getSession();
+    if(!session){setState('login');return}
+    if(!await ensureSession(session)){handleExpired('inactivity');return}
     const { data: { user } } = await db.auth.getUser();
     if (!user) { setState('login'); return; }
+    if(!await ensureSession(session)){handleExpired('inactivity');return}
     const { data: assurance } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(!await ensureSession(session)){handleExpired('inactivity');return}
     if (assurance?.currentLevel !== 'aal2') {
       setState('mfa');
       const { data: factors } = await db.auth.mfa.listFactors();
+      if(!await ensureSession(session)){handleExpired('inactivity');return}
       const verified = factors?.totp?.find(f => f.status === 'verified');
       if (verified) { setFactorId(verified.id); return; }
       const { data, error } = await db.auth.mfa.enroll({ factorType: 'totp' });
+      if(!await ensureSession(session)){handleExpired('inactivity');return}
       if (error || !data) { setMessage('Não foi possível iniciar a verificação em duas etapas.'); return; }
       setFactorId(data.id); setQrCode(data.totp.qr_code); return;
     }
@@ -85,9 +100,10 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     if (role?.role !== 'administrador') {
       await db.auth.signOut(); setState('login'); setMessage('Esta conta não tem acesso ao sistema de gestão.'); return;
     }
+    if(!await ensureSession(session)){handleExpired('inactivity');return}
     setAccountName(role.display_name?.trim() || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Minha conta');
     setMessage(''); setState('ready');
-  }, []);
+  }, [ensureSession,handleExpired]);
 
   useEffect(() => {
     let active = true;
@@ -104,10 +120,14 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     let cancelled = false;
     async function establishServerSession() {
       const { data: { session } } = await db!.auth.getSession();
-      if (!session || cancelled) return;
+      if (!session || cancelled || !await ensureSession(session)) return;
       const response = await fetch('/api/admin/session', {
         method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store',
       });
+      if(!await ensureSession(session)){
+        await fetch('/api/admin/session',{method:'DELETE',cache:'no-store'}).catch(()=>{});
+        return;
+      }
       if (!response.ok) { if (!cancelled) setMessage('Não foi possível confirmar a sessão no servidor. Entre novamente.'); return; }
       if (pathname === '/admin/acesso' && !cancelled) {
         const requested = new URLSearchParams(window.location.search).get('next');
@@ -117,19 +137,22 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     void establishServerSession();
     const refresh = window.setInterval(() => { void establishServerSession(); }, 10 * 60 * 1000);
     return () => { cancelled = true; window.clearInterval(refresh); };
-  }, [state, pathname]);
+  }, [state, pathname, ensureSession]);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!db) return;
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     if (error) { setMessage('Não foi possível entrar. Confira suas credenciais.'); return; }
+    if(!await ensureSession(data.session,true)){handleExpired('inactivity');return}
     setPassword(''); await continueSignIn();
   }
 
   async function verifyMfa(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!db || !factorId || !/^\d{6}$/.test(code)) return;
+    const {data:{session}}=await db.auth.getSession();
+    if(!await ensureSession(session)){handleExpired('inactivity');return}
     const { data: challenge, error: challengeError } = await db.auth.mfa.challenge({ factorId });
     if (challengeError || !challenge) { setMessage('Não foi possível verificar o código.'); return; }
     const { error } = await db.auth.mfa.verify({ factorId, challengeId: challenge.id, code });
@@ -141,6 +164,6 @@ export default function ManagementLayout({ children }: { children: ReactNode }) 
     {state === 'loading' && <main className="management-auth"><p>Verificando acesso...</p></main>}
     {state === 'login' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Gestão Elegância</h1><p>Somente administradores autorizados podem acessar os dados da loja.</p>{db ? <form onSubmit={signIn}><label>E-mail<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)}/></label><label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)}/></label><button className="botao" type="submit">Entrar</button></form> : <p>Configuração do Supabase indisponível.</p>}<p role="status">{message}</p></main>}
     {state === 'mfa' && <main className="management-auth"><p className="eyebrow">ÁREA RESTRITA</p><h1>Verificação em duas etapas</h1>{qrCode && <><p>Escaneie o código no aplicativo autenticador.</p><Image unoptimized src={qrCode} alt="Código de configuração do autenticador" width={180} height={180}/></>}<form onSubmit={verifyMfa}><label>Código de seis dígitos<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code} onChange={event => setCode(event.target.value)}/></label><button className="botao" type="submit">Verificar</button></form><p role="status">{message}</p></main>}
-    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout erp-collapsed"><aside className={`management-sidebar ${menuOpen ? 'is-open' : ''}`}><Link className="management-brand" href="/admin" aria-label="E✦ Elegância PAINEL DE GESTÃO · visão geral" title="Visão geral"><span className="management-brand-symbol">E✦</span></Link><button className="management-menu-toggle" type="button" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} title={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen} aria-controls="management-navigation" onClick={() => setMenuOpen(!menuOpen)}><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><nav id="management-navigation" aria-label="Seções da gestão">{sections.map(section => <div key={section.href}><Link href={section.href} aria-label={section.label} title={section.label} aria-current={(pathname === section.href || (section.href !== '/admin' && pathname.startsWith(`${section.href}/`))) ? 'page' : undefined} onClick={() => setMenuOpen(false)}><NavIcon name={section.icon}/></Link></div>)}</nav><div className="management-sidebar-bottom"><Link className="management-store-link" href="/" aria-label="Ver loja" title="Ver loja"><NavIcon name="store"/></Link><button type="button" aria-label="Sair" title="Sair" onClick={async () => { await fetch('/api/admin/session', { method: 'DELETE' }); await db.auth.signOut(); setState('login'); }}><NavIcon name="logout"/></button></div></aside><div className="management-main"><header className="management-topbar"><div><span className="management-topbar-kicker">ELEGÂNCIA PRATAS</span><strong>{sections.find(section => pathname === section.href || (section.href !== '/admin' && pathname.startsWith(`${section.href}/`)))?.label ?? 'Gestão da loja'}</strong></div><WorkspaceTools db={db}/><Link className="erp-alert-link" href="/admin#operation-title">Pendências</Link><details className="erp-user-menu"><summary className="management-topbar-account" aria-label={`Conta de ${accountName}`}><span className="management-account-avatar" aria-hidden="true">{accountName.slice(0, 1).toLocaleUpperCase('pt-BR')}</span>{accountName}</summary><div><Link href="/admin#account-security">Segurança da conta</Link><Link href="/">Abrir loja</Link></div></details></header><nav className="erp-breadcrumbs" aria-label="Localização"><Link href="/admin">Gestão</Link><span aria-hidden="true">/</span><span>{sections.find(s => s.href !== '/admin' && pathname.startsWith(s.href))?.label ?? 'Visão geral'}</span></nav>{children}</div></div></ManagementContext.Provider>}
+    {state === 'ready' && db && <ManagementContext.Provider value={{ db }}><div className="management-layout erp-collapsed"><aside className={`management-sidebar ${menuOpen ? 'is-open' : ''}`}><Link className="management-brand" href="/admin" aria-label="E✦ Elegância PAINEL DE GESTÃO · visão geral" title="Visão geral"><span className="management-brand-symbol">E✦</span></Link><button className="management-menu-toggle" type="button" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} title={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen} aria-controls="management-navigation" onClick={() => setMenuOpen(!menuOpen)}><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><nav id="management-navigation" aria-label="Seções da gestão">{sections.map(section => <div key={section.href}><Link href={section.href} aria-label={section.label} title={section.label} aria-current={(pathname === section.href || (section.href !== '/admin' && pathname.startsWith(`${section.href}/`))) ? 'page' : undefined} onClick={() => setMenuOpen(false)}><NavIcon name={section.icon}/></Link></div>)}</nav><div className="management-sidebar-bottom"><Link className="management-store-link" href="/" aria-label="Ver loja" title="Ver loja"><NavIcon name="store"/></Link><button type="button" aria-label="Sair" title="Sair" onClick={() => endSession()}><NavIcon name="logout"/></button></div></aside><div className="management-main"><header className="management-topbar"><div><span className="management-topbar-kicker">ELEGÂNCIA PRATAS</span><strong>{sections.find(section => pathname === section.href || (section.href !== '/admin' && pathname.startsWith(`${section.href}/`)))?.label ?? 'Gestão da loja'}</strong></div><WorkspaceTools db={db}/><Link className="erp-alert-link" href="/admin#operation-title">Pendências</Link><details className="erp-user-menu"><summary className="management-topbar-account" aria-label={`Conta de ${accountName}`}><span className="management-account-avatar" aria-hidden="true">{accountName.slice(0, 1).toLocaleUpperCase('pt-BR')}</span>{accountName}</summary><div><Link href="/admin#account-security">Segurança da conta</Link><Link href="/">Abrir loja</Link></div></details></header><nav className="erp-breadcrumbs" aria-label="Localização"><Link href="/admin">Gestão</Link><span aria-hidden="true">/</span><span>{sections.find(s => s.href !== '/admin' && pathname.startsWith(s.href))?.label ?? 'Visão geral'}</span></nav>{warning&&<IdleWarning onContinue={extend}/>} {children}</div></div></ManagementContext.Provider>}
   </div>;
 }
