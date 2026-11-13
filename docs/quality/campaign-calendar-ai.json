@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-13",
+  "status": "calendar_planning_ready_ai_blocked_by_provider_billing",
+  "applicationTests": {
+    "passed": 45,
+    "failed": 0
+  },
+  "hostedApi": {
+    "passed": 13,
+    "failed": 0,
+    "realAuthAndMfa": true
+  },
+  "browser": {
+    "widths": [
+      1440,
+      768,
+      390
+    ],
+    "tabs": 3,
+    "viewportChecks": 9,
+    "pageErrors": 0,
+    "persistence": true,
+    "editing": true,
+    "successToast": true
+  },
+  "ai": {
+    "model": "google/gemini-3.5-flash-lite",
+    "liveGenerationPassed": false,
+    "providerStatus": 403,
+    "providerRequirement": "Valid credit card required by Vercel AI Gateway",
+    "simulatedContentPresentedAsAi": false,
+    "enabledInProduction": false,
+    "monthlyAttemptLimit": 60,
+    "dailyPerAdminAttemptLimit": 5,
+    "cooldownSeconds": 60,
+    "maxOutputTokens": 1800
+  },
+  "backup": {
+    "status": "verified",
+    "project": "sltohhqejguauhanjhfj",
+    "runId": "2026-11-13T12-42-20.345Z-81d1feb0-dd9b-4fb4-bd07-cc59dd599dcb",
+    "snapshotAt": "2026-11-13T12:42:20.533Z",
+    "completedAt": "2026-11-13T12:42:39.756Z",
+    "files": 66,
+    "sourceFileBytes": 3025616,
+    "tables": 58,
+    "archiveBytes": 3182038,
+    "sha256": "c9bc96269fefece413414be2c80bd6cd26a4ee3acea8a8496a57dce426ca0408",
+    "privateStorage": true,
+    "sourceWrites": 0,
+    "pathname": "sltohhqejguauhanjhfj/2026-11-13T12-42-20.345Z-81d1feb0-dd9b-4fb4-bd07-cc59dd599dcb/backup.tar.gz",
+    "restoreTest": "Archive parsed with pg_restore --list; production was not restored"
+  },
+  "existingTablesCompared": 21,
+  "existingTablesUnchanged": true,
+  "protectedDirectoriesChanged": [],
+  "newDependencies": [],
+  "localProjectFilesSaved": false
+}

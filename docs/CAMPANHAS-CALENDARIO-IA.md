@@ -19,10 +19,10 @@ Apenas nome da coleção, objetivo, público, ocasião e nomes/modelos de até 3
 Há 60 tentativas mensais por loja, cinco diárias por administrador, intervalo mínimo de um minuto e saída máxima de 1.800 tokens. A reserva é transacional no banco; tentativas com erro contam. Esses limites controlam consumo, não constituem um teto monetário contratual com o provedor. Não foi habilitada recarga automática nem alterado plano de cobrança.
 
 ## Verificação até esta preparação
-- 41 testes da aplicação passaram (36 anteriores e cinco de calendário).
+- 45 testes da aplicação passaram (36 anteriores, cinco de calendário e quatro de contrato de entrada/saída da IA).
 - Lint sem erros após correção; quatro avisos preexistentes no site público.
-- 11 verificações da API hospedada passaram: MFA/permissões, persistência, datas, vínculo de coleção e limites configurados.
-- Calendário, campanha e persistência após recarga passaram pela interface.
+- 13 verificações da API hospedada passaram: MFA/permissões, persistência, datas, vínculo de coleção e limites configurados.
+- Calendário, campanha, persistência após recarga, edição de eventos/campanhas/inspirações e toast de sucesso passaram pela interface.
 - Nove verificações de largura em três abas passaram em 1440/768/390, sem erros da página.
 - A conexão real foi exercitada e o Gateway retornou HTTP 403 exigindo cartão válido na conta Vercel para liberar acesso, inclusive aos créditos gratuitos. Não houve geração concluída nem resposta simulada apresentada como IA. A IA permanece desabilitada em produção até essa habilitação externa.
 - Limites diário e mensal foram testados no banco de homologação com preenchimento sintético do contador; ambas as solicitações foram bloqueadas antes de consultar o provedor.
@@ -38,3 +38,6 @@ Backup novo e verificado antes da estrutura aditiva: execução 2026-11-13T12-42
 O SQL foi aplicado de forma aditiva ao projeto oficial após homologação. As 21 tabelas públicas existentes tiveram contagens e checksums comparados antes/depois, sem diferença. Os eventos comerciais são calculados em código; não foram inseridas campanhas ou dados de teste na produção.
 
 Calendário e planejamento serão publicados com NEXT_PUBLIC_CAMPAIGN_ENABLED=true. CAMPAIGN_AI_ENABLED=false e NEXT_PUBLIC_CAMPAIGN_AI_READY=false impedem requisições pagas enquanto a conta aguarda habilitação. O modelo está configurado somente no servidor. A Vercel recusou a geração por exigir cartão; não foi alterado plano, cadastrado pagamento ou habilitada recarga automática. O usuário foi informado e a decisão sobre essa configuração permanece com ele.
+
+## Uso no sistema oficial
+Abra Coleções → Calendário e campanhas. Cadastre ocasiões próprias e planos de divulgação; o conteúdo salvo fica no Supabase. A seção de IA mostra a pendência de habilitação e mantém o botão desabilitado enquanto o provedor não liberar a conta. Depois dessa liberação, é necessário habilitar as flags de IA e concluir um teste real antes de declarar a geração operacional.
