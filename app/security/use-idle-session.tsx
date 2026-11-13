@@ -2,7 +2,7 @@
 
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {Session,SupabaseClient} from '@supabase/supabase-js';
-import {activityState,readActivity,recordActivity,sessionIdentity,type ActivityRecord} from './inactivity';
+import {activityState,initialActivity,readActivity,recordActivity,sessionIdentity,type ActivityRecord} from './inactivity';
 
 type Reason='inactivity'|'signed-out';
 export const IDLE_MESSAGE='Sua sessão foi encerrada após 15 minutos de inatividade. Entre novamente.';
@@ -35,6 +35,7 @@ export function useIdleSession(db:SupabaseClient|null,onExpired:(reason:Reason)=
    if(revoke&&db)void db.auth.signOut({scope:'local'}).catch(()=>{});
  },[clearCookie,db,persist,send]);
  const check=useCallback(()=>{
+   if(provisional.current)return false;
    if(!current.current)return false;
    const state=activityState(current.current,Date.now());
    if(state==='expired'){
@@ -54,7 +55,7 @@ export function useIdleSession(db:SupabaseClient|null,onExpired:(reason:Reason)=
      let stored:ActivityRecord|null=null,storageAvailable=true;
      try{stored=readActivity(sessionStorage.getItem(namespace),sessionId)}catch{storageAvailable=false}
      current.current=fresh?{sessionId,lastActive:Date.now(),locked:false}:
-       stored??{sessionId,lastActive:storageAvailable?Date.now():0,locked:false};
+       stored??(storageAvailable?initialActivity(sessionId,session.user.last_sign_in_at):{sessionId,lastActive:0,locked:false});
      if(stored?.locked&&!fresh){
        current.current={...stored,locked:false};expire();return false;
      }

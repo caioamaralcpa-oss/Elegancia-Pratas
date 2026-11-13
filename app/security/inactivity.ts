@@ -32,3 +32,8 @@ export function readActivity(raw:string|null,sessionId:string):ActivityRecord|nu
     return {sessionId,lastActive:value.lastActive,locked:value.locked};
   }catch{return {sessionId,lastActive:0,locked:true}}
 }
+
+export function initialActivity(sessionId:string,signedInAt:string|undefined):ActivityRecord {
+  const parsed=signedInAt?Date.parse(signedInAt):NaN;
+  return {sessionId,lastActive:Number.isFinite(parsed)?parsed:0,locked:false};
+}
