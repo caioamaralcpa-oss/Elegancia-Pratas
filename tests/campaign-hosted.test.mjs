@@ -1,0 +1,19 @@
+if(process.env.CAMPAIGN_HOMOLOGATION_REF!=='cgcaykrtfxlkrbopycyn')throw Error('Executar somente no banco isolado de homologação, com credenciais sintéticas em campaign-fixtures.json.');
+import fs from 'node:fs';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';const users=JSON.parse(fs.readFileSync('campaign-fixtures.json')).fixtures,base='https://cgcaykrtfxlkrbopycyn.supabase.co/rest/v1/',key=process.env.CAMPAIGN_TEST_ANON_KEY;let passed=0;async function req(path,u,method='GET',body,aal='session'){const r=await fetch(base+path,{method,headers:{apikey:key,Authorization:'Bearer '+(u?u[aal].access_token:key),'Content-Type':'application/json',Prefer:'return=representation'},body:body?JSON.stringify(body):undefined});const t=await r.text();return{status:r.status,ok:r.ok,data:t?JSON.parse(t):null}}async function rpc(name,body){const r=await req('rpc/'+name,users[0],'POST',body);if(!r.ok)throw Error(name+' '+JSON.stringify(r.data));return r.data}function check(v,n){assert.ok(v,n);passed++;console.log('PASS '+n)}
+(async()=>{const [a,v]=users;check(!(await req('campaign_events?select=id',null)).ok,'anon denied');
+check(!(await req('rpc/campaign_save_event',v,'POST',{p_id:null,p_title:'DENIED',p_day:'2026-12-01',p_annual:false,p_notes:''})).ok,'viewer MFA2 cannot write');
+check(!(await req('rpc/campaign_save_event',a,'POST',{p_id:null,p_title:'DENIED',p_day:'2026-12-01',p_annual:false,p_notes:''},'aal1')).ok,'admin AAL1 cannot write');
+check(!(await req('campaign_events',a,'POST',{title:'DENIED',occurs_on:'2026-12-01'})).ok,'direct insert denied');
+const event=await rpc('campaign_save_event',{p_id:null,p_title:'TESTE — Dia da Noiva',p_day:'2026-12-01',p_annual:true,p_notes:'Fixture sintética'});
+await rpc('campaign_save_event',{p_id:event,p_title:'TESTE — Evento editado',p_day:'2026-12-02',p_annual:true,p_notes:'Fixture sintética'});
+check((await req('campaign_events?id=eq.'+event+'&select=title',a)).data[0].title==='TESTE — Evento editado','event edited persistently');
+check((await req('campaign_events?select=id',v)).data.length===0,'viewer cannot read campaigns');
+const c=await req('collections',a,'POST',{name:'TESTE — Campanhas IA '+randomUUID()});if(!c.ok)throw Error('collection '+JSON.stringify(c.data));const collection=c.data[0].id;
+const plan=await rpc('campaign_save_plan',{p_id:null,p_collection:collection,p_title:'TESTE — Campanha',p_start:'2026-11-13',p_end:'2026-12-02',p_goal:'Inspirar presentes de Natal',p_audience:'Pessoas buscando presentes',p_responsible:'Equipe de teste',p_status:'ideia',p_event_key:'natal-2026'});
+check(!!plan,'plan saved');
+check(!(await req('rpc/campaign_save_plan',a,'POST',{p_id:null,p_collection:collection,p_title:'Teste',p_start:'2026-12-03',p_end:'2026-12-02',p_goal:'Teste',p_audience:'',p_responsible:'',p_status:'ideia',p_event_key:''})).ok,'end before start rejected');
+const idea=await rpc('campaign_save_idea',{p_id:null,p_collection:collection,p_plan:plan,p_brief:{goal:'Teste'},p_content:{campaignName:'TESTE',summary:'Fixture',ideas:[{format:'post',title:'Fixture',copy:'Texto de teste',visual:'Foto comercial',script:'',cta:'Conheça a coleção'}]},p_source:'manual'});
+check(!!idea,'manual inspiration saved');
+check(!(await req('rpc/campaign_save_idea',a,'POST',{p_id:null,p_collection:null,p_plan:plan,p_brief:{},p_content:{},p_source:'manual'})).ok,'mismatched plan and collection rejected');
+const quota=await rpc('campaign_usage_summary',{});check(quota.monthlyLimit===60&&quota.dailyLimit===5&&quota.monthlyUsed===0,'server quota starts empty');
+fs.writeFileSync('campaign-test-ids.json',JSON.stringify({event,collection,plan,idea}),{mode:0o600});console.log(JSON.stringify({passed,financialWrites:0}));})().catch(e=>{console.error(e.message);process.exit(1)});
