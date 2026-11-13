@@ -53,6 +53,7 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
      const diagnostic=await response.json().catch(()=>({}));
      const detail=String(diagnostic.error?.message??diagnostic.message??'').replaceAll(gatewayKey,'[redacted]').replace(/eyJ[A-Za-z0-9_.-]+/g,'[redacted]').slice(0,500);
      console.warn(JSON.stringify({event:'campaign_ai_provider_error',status:response.status,code:diagnostic.error?.code??diagnostic.code??null,...(url.includes('cgcaykrtfxlkrbopycyn')?{detail}:{})}));
+     if(response.status===403&&/valid credit card/i.test(detail))throw Error('BILLING_SETUP');
      if(response.status===402)throw Error('CREDITS');
      if(response.status===401||response.status===403)throw Error('AUTH');
      if(response.status===429)throw Error('BUSY');
@@ -69,7 +70,7 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
  }catch(error){
    await db.rpc('campaign_finish_ai',{p_id:id,p_ok:false,p_model:model});
    const code=error instanceof Error?error.message:'';
-   const message=code==='CREDITS'?'A IA está sem créditos disponíveis. O responsável pode conferir o saldo no provedor.':
+   const message=code==='BILLING_SETUP'?'A geração de IA aguarda habilitação do AI Gateway na conta Vercel.':code==='CREDITS'?'A IA está sem créditos disponíveis. O responsável pode conferir o saldo no provedor.':
      code==='AUTH'?'A conexão com a IA não foi autorizada. Solicite a conferência da configuração.':
      code==='BUSY'?'O serviço de IA está ocupado. Aguarde um minuto e tente novamente.':
      code==='INCOMPLETE'?'A resposta ficou incompleta. Aguarde um minuto para tentar novamente.':

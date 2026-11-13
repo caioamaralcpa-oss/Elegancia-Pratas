@@ -20,7 +20,7 @@ export function Modal({ open, onClose, title, children, variant='modal' }: { ope
 export function ErrorState({onRetry,message='Não foi possível carregar os dados.'}:{onRetry:()=>void;message?:string}){return <div className="erp-empty erp-load-error" role="alert"><h2>Não foi possível carregar</h2><p>{message}</p><button type="button" className="management-outline" onClick={onRetry}>Tentar novamente</button></div>;}
 export function Feedback({message}:{message:string}){
  const [visible,setVisible]=useState(false);
- const success=/^(Coleção salva|Item salvo|Movimentação registrada|Modelo de embalagem salvo|Fotos comerciais salvas|Ficha comercial salva|Joia publicada|Joia retirada|Joia movida|Senha definida|Joia .+ (salva|excluída)|.+joias? vinculad[ao]s?|.+: preço de .+ salvo|Cotação de teste recebida)/i.test(message)&&!/(não foi possível|falha|erro|salv[ao][^.!?]{0,80}, mas)/i.test(message);
+ const success=/^(Registro salvo na nuvem|Registro concluído|Coleção salva|Item salvo|Movimentação registrada|Modelo de embalagem salvo|Fotos comerciais salvas|Ficha comercial salva|Joia publicada|Joia retirada|Joia movida|Senha definida|Joia .+ (salva|excluída)|.+joias? vinculad[ao]s?|.+: preço de .+ salvo|Cotação de teste recebida)/i.test(message)&&!/(não foi possível|falha|erro|salv[ao][^.!?]{0,80}, mas)/i.test(message);
  useEffect(()=>{setVisible(true);const id=setTimeout(()=>setVisible(false),7000);return()=>clearTimeout(id)},[message]);
  return <><p role="status" className="management-status">{message}</p>{success&&visible&&<aside className="erp-toast" aria-label="Notificação de sucesso"><strong>Operação concluída</strong><p>{message}</p><button type="button" onClick={()=>setVisible(false)}>Fechar notificação</button></aside>}</>;
 }
