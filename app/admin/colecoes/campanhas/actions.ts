@@ -50,6 +50,9 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
      })
    });
    if(!response.ok){
+     const diagnostic=await response.json().catch(()=>({}));
+     const detail=String(diagnostic.error?.message??diagnostic.message??'').replaceAll(gatewayKey,'[redacted]').replace(/eyJ[A-Za-z0-9_.-]+/g,'[redacted]').slice(0,500);
+     console.warn(JSON.stringify({event:'campaign_ai_provider_error',status:response.status,code:diagnostic.error?.code??diagnostic.code??null,...(url.includes('cgcaykrtfxlkrbopycyn')?{detail}:{})}));
      if(response.status===402)throw Error('CREDITS');
      if(response.status===401||response.status===403)throw Error('AUTH');
      if(response.status===429)throw Error('BUSY');
