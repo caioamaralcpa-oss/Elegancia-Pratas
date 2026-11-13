@@ -1,8 +1,9 @@
 'use server';
+import {headers} from 'next/headers';
 import {createClient} from '@supabase/supabase-js';
 import {z} from 'zod';
 import {verifiedAdmin} from '@/lib/admin-server-auth';
-import {briefSchema,ideaSchema,type CampaignBrief} from './schema';
+import {briefSchema,ideaSchema,ideaFormats,type CampaignBrief} from './schema';
 import {commercialCalendar,todayInBrazil} from './calendar';
 
 export async function generateCampaignInspiration(accessToken:string,raw:CampaignBrief) {
@@ -11,7 +12,8 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
  if(!parsed.success||typeof accessToken!=='string'||accessToken.length>12000)return{ok:false as const,message:'Confira a coleção, o objetivo e o público.'};
  if(!await verifiedAdmin(accessToken))return{ok:false as const,message:'Entre novamente com sua conta administrativa e o segundo fator.'};
  const model=process.env.CAMPAIGN_AI_MODEL;
- const gatewayKey=process.env.AI_GATEWAY_API_KEY||process.env.VERCEL_OIDC_TOKEN;
+ const requestHeaders=await headers();
+ const gatewayKey=process.env.AI_GATEWAY_API_KEY||requestHeaders.get('x-vercel-oidc-token')||process.env.VERCEL_OIDC_TOKEN;
  if(!model||!gatewayKey)return{ok:false as const,message:'A conexão com a IA precisa ser configurada pelo responsável pelo sistema.'};
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL!,anon=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
  const db=createClient(url,anon,{global:{headers:{Authorization:'Bearer '+accessToken}},auth:{persistSession:false,autoRefreshToken:false}});
@@ -58,6 +60,7 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
    const content=result.choices?.[0]?.message?.content;
    if(typeof content!=='string'||content.length>40000)throw Error('FORMAT');
    const inspiration=ideaSchema.parse(JSON.parse(content));
+   if(!ideaFormats.every(format=>inspiration.ideas.some(idea=>idea.format===format)))throw Error('FORMAT');
    await db.rpc('campaign_finish_ai',{p_id:id,p_ok:true,p_model:model});
    return{ok:true as const,inspiration,availablePieces:products.data.length};
  }catch(error){
