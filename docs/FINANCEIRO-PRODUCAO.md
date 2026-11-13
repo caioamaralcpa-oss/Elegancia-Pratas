@@ -37,7 +37,7 @@ Executor separado elegancia-backup-privado, dpl_ABKVLHbgP39on3ZTKwhxnCh5KHj8. Ba
 ## Acessos e pendências
 O administrador anterior continua preservado. A nova conta administrativa e as duas contas de consulta foram criadas sem senha e sem confirmação automática de e-mail. As sócias não receberam perfil administrativo. Endereços pessoais não constam deste repositório.
 
-O envio de mensagens de ativação ainda não foi autorizado nem executado. A página de ativação está publicada e os redirecionamentos oficiais foram conferidos sem envio. A pendência de configuração de URLs era da homologação; não deve ser aplicada ao projeto oficial.
+Em 13/11/2026, após autorização explícita do usuário, o serviço Supabase aceitou o envio do convite de ativação da nova conta administrativa (HTTP 200). Isso confirma a aceitação da solicitação, não a entrega na caixa de entrada. Não foram enviados convites às sócias. A função temporária de envio foi encerrada e o sandbox descartável foi parado. A página de ativação está publicada e os redirecionamentos oficiais foram conferidos sem envio. A pendência de configuração de URLs era da homologação; não deve ser aplicada ao projeto oficial.
 
 CPF, telefone e chave Pix reais não foram inventados ou cadastrados. A gestão deverá preenchê-los no cadastro privado e único antes de as sócias consultarem seus perfis. Contas não vinculadas não enxergam cadastros de terceiros.
 
