@@ -48,3 +48,14 @@ PR 16 integrado em 4cb9fa83c7bd4eb5be518a2d04c000f728d39213. Build funcional dpl
 As duas contas Auth sintéticas e seus vínculos administrativos foram removidos. Eventos, planos, inspirações e contadores sintéticos foram limpos do banco de homologação; a função temporária foi substituída por HTTP 410. A produção ficou com zero registros novos de campanha até o início do uso real, sem transferência dos testes.
 
 A geração real continua pendente da exigência externa de cartão válido pela Vercel. Só deve ser considerada operacional após habilitação e uma geração real validada. O calendário e o planejamento não dependem dessa habilitação.
+
+## Ativação após cadastro do cartão — 13/11/2026
+O teste real com google/gemini-3.5-flash-lite retornou 403: modelo indisponível para os créditos gratuitos. Não foram comprados créditos nem alteradas recarga automática ou assinatura.
+
+Foi selecionado google/gemini-2.5-flash-lite, aceito pela conta com créditos disponíveis. Dois testes reais em implantação temporária protegida da homologação passaram; o segundo usou o mesmo prompt de sistema, contrato Zod, JSON Schema e limite de 1.800 tokens da aplicação. Os cinco formatos foram recebidos e validados. Consumo informado pelo provedor: 201/658 tokens de entrada/saída, US$ 0,0002833; 296/880 tokens, US$ 0,0003816. São consumos de créditos, não prova de débito no cartão. Testes usaram contexto sintético, sem registros no banco, sem dados pessoais e sem publicação de conteúdo.
+
+Configuração oficial de ativação: CAMPAIGN_AI_MODEL=google/gemini-2.5-flash-lite; CAMPAIGN_AI_ENABLED=true; NEXT_PUBLIC_CAMPAIGN_AI_READY=true. OIDC habilitado no projeto para autenticação do servidor. Limites de 60 tentativas/mês, cinco/dia por administrador, intervalo de um minuto e validações permanecem iguais. Preços de referência do novo modelo: US$ 0,10/1M tokens de entrada e US$ 0,40/1M de saída; variáveis conforme o catálogo.
+
+O teste desta ativação cobre provedor, autenticação OIDC da homologação e contrato da resposta; não foi repetido o fluxo completo autenticado com MFA na interface oficial. As verificações anteriores de autenticação, persistência e permissões continuam registradas acima. Sugestões são rascunhos para revisão: textos promocionais exigem verificar condições reais antes de usar. Nenhuma oferta, preço ou publicação é criada automaticamente.
+
+Somente configurações e documentação foram atualizadas; código e dados existentes não foram alterados. Nenhum arquivo do projeto foi salvo na máquina do usuário.
