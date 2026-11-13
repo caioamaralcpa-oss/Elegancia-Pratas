@@ -3,7 +3,7 @@ import {headers} from 'next/headers';
 import {createClient} from '@supabase/supabase-js';
 import {z} from 'zod';
 import {verifiedAdmin} from '@/lib/admin-server-auth';
-import {briefSchema,ideaSchema,ideaFormats,type CampaignBrief} from './schema';
+import {briefSchema,ideaSchema,parseGeneratedInspiration,type CampaignBrief} from './schema';
 import {commercialCalendar,todayInBrazil} from './calendar';
 
 export async function generateCampaignInspiration(accessToken:string,raw:CampaignBrief) {
@@ -63,8 +63,7 @@ export async function generateCampaignInspiration(accessToken:string,raw:Campaig
    if(result.choices?.[0]?.finish_reason==='length')throw Error('INCOMPLETE');
    const content=result.choices?.[0]?.message?.content;
    if(typeof content!=='string'||content.length>40000)throw Error('FORMAT');
-   const inspiration=ideaSchema.parse(JSON.parse(content));
-   if(!ideaFormats.every(format=>inspiration.ideas.some(idea=>idea.format===format)))throw Error('FORMAT');
+   const inspiration=parseGeneratedInspiration(JSON.parse(content));
    await db.rpc('campaign_finish_ai',{p_id:id,p_ok:true,p_model:model});
    return{ok:true as const,inspiration,availablePieces:products.data.length};
  }catch(error){

@@ -14,3 +14,9 @@ export const briefSchema=z.object({
  goal:z.string().trim().min(2).max(700), audience:z.string().trim().max(300)
 }).strict();
 export type CampaignBrief=z.infer<typeof briefSchema>;
+
+export function parseGeneratedInspiration(value:unknown):CampaignInspiration {
+ const result=ideaSchema.parse(value);
+ if(!ideaFormats.every(format=>result.ideas.some(idea=>idea.format===format)))throw Error('FORMAT');
+ return result;
+}
